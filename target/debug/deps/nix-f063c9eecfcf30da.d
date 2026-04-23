@@ -1,0 +1,13 @@
+/home/voice01/projects/vpn-project/target/debug/deps/nix-f063c9eecfcf30da.d: /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/lib.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/macros.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/errno.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/fcntl.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/mod.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/signal.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/sysinfo.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/time.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/unistd.rs
+
+/home/voice01/projects/vpn-project/target/debug/deps/libnix-f063c9eecfcf30da.rmeta: /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/lib.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/macros.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/errno.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/fcntl.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/mod.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/signal.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/sysinfo.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/time.rs /home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/unistd.rs
+
+/home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/lib.rs:
+/home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/macros.rs:
+/home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/errno.rs:
+/home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/fcntl.rs:
+/home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/mod.rs:
+/home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/signal.rs:
+/home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/sysinfo.rs:
+/home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/sys/time.rs:
+/home/voice01/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/nix-0.31.2/src/unistd.rs:

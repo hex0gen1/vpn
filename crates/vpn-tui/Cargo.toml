@@ -1,0 +1,22 @@
+[package]
+name = "vpn-tui"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+vpn-core = { path = "../vpn-core" }
+vpn-types = { path = "../vpn-types" }
+vpn-daemon = {path = "../vpn-daemon"}
+vpn-parse = {path = "../vpn-parse"}
+ratatui.workspace = true
+crossterm.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+color-eyre = "0.6.5"
+bytes = "1.11.1"
+futures = "0.3.32"
+tokio-util = {version ="0.7.18", features = ["codec"]}
+serde_json.workspace = true
+tracing-subscriber.workspace = true

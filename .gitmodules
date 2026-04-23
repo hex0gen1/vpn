@@ -1,0 +1,3 @@
+[submodule "crates/vpn-parse"]
+	path = crates/vpn-parse
+	url = git@github.com:hex0gen1/vpn-parse.git
