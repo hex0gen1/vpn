@@ -29,3 +29,41 @@ pub struct ConnectRequest {
     pub server_id: String,
     pub mode: AppMode,
 }
+#[derive(Debug, Serialize, Deserialize)]
+pub enum Protocol {
+    Vless,
+    Unknown(String),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum Security {
+    Reality,
+    Tls,
+    None,
+    Other(String),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum Transport {
+    Tcp,
+    Ws,
+    Grpc,
+    Other(String),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct VpnProfile {
+    pub protocol: Protocol,
+    pub uuid: String,
+    pub host: String,
+    pub port: u16,
+    pub security: Option<Security>,
+    pub transport: Option<Transport>,
+    pub sni: Option<String>,
+    pub fp: Option<String>,
+    pub pbk: Option<String>,
+    pub sid: Option<String>,
+    pub spx: Option<String>,
+    pub flow: Option<String>,
+    pub tag: Option<String>,
+}
