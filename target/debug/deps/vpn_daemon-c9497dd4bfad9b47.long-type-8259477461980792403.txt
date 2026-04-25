@@ -1,0 +1,1 @@
+std::result::Result<std::sync::MutexGuard<'_, transport::server::IpAllocator>, std::sync::PoisonError<std::sync::MutexGuard<'_, transport::server::IpAllocator>>>
