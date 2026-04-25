@@ -13,6 +13,26 @@ pub struct Session {
     pub authentificated: bool,
     pub peer_addr: Option<std::net::SocketAddr>,
 }
+pub enum CipherAlg {
+    AesGcm,
+    ChaCha20,
+}
+pub struct CryptoState {
+    pub key: [u8; 32],
+    pub tx_nonce: std::sync::atomic::AtomicU64,
+    pub rx_last_nonce: std::sync::Arc<std::sync::Mutex<u64>>,
+    pub cipher_type: CipherAlg,
+}
+impl CryptoState {
+    pub fn get_next_nonce(&self) -> [u8; 12] {
+        let n = self
+            .tx_nonce
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let mut out = [0u8; 12];
+        out[4..].copy_from_slice(&n.to_be_bytes());
+        out
+    }
+}
 impl Session {
     pub fn new() -> Self {
         Self {

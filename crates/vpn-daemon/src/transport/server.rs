@@ -176,7 +176,7 @@ use aead::{Aead, Key, KeyInit};
 use aes_gcm::{Aes256Gcm, Nonce};
 use getrandom::fill;
 type AesCipher = Aes256Gcm;
-pub fn encrypt_frame(
+pub fn encrypt_frame_deprecated(
     frame: Vec<u8>,
     key: &[u8; 32],
     aad: Option<&[u8]>,
@@ -200,8 +200,8 @@ pub fn encrypt_frame(
     Ok(out)
 }
 
-pub fn decrypt_frame(
-    key: &Key<Aes256Gcm>,
+pub fn decrypt_frame_deprecated(
+    key: &crate::transport::frame::CryptoState,
     encrypted: &[u8],
     aad: Option<&[u8]>,
 ) -> anyhow::Result<Vec<u8>> {
@@ -211,7 +211,7 @@ pub fn decrypt_frame(
     let (nonce_bytes, ciphertext) = encrypted.split_at(12);
     let nonce = Nonce::from_slice(nonce_bytes);
 
-    let cipher = AesCipher::new(key);
+    let cipher = AesCipher::new_from_slice(&key.key)?;
     let payload = aead::Payload {
         msg: ciphertext,
         aad: aad.unwrap_or(&[]),
@@ -219,7 +219,66 @@ pub fn decrypt_frame(
 
     Ok(cipher.decrypt(nonce, payload)?)
 }
+const NONCE_LEN: usize = 12;
 
+pub fn encrypt_frame_sync(
+    plaintext: &[u8],
+    state: &crate::transport::frame::CryptoState,
+) -> anyhow::Result<Vec<u8>> {
+    let cipher = Aes256Gcm::new_from_slice(&state.key)?;
+    let counter = state
+        .tx_nonce
+        .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let mut nonce_bytes = [0u8; NONCE_LEN];
+    nonce_bytes[4..].copy_from_slice(&counter.to_be_bytes());
+    let nonce = Nonce::from(nonce_bytes);
+    let ciphertext = cipher.encrypt(&nonce, plaintext)?;
+    let mut out = Vec::with_capacity(NONCE_LEN + ciphertext.len());
+    out.extend_from_slice(&nonce_bytes);
+    out.extend_from_slice(&ciphertext);
+    Ok(out)
+}
+
+pub fn decrypt_frame_sync(
+    ciphertext: &[u8],
+    state: &crate::transport::frame::CryptoState,
+) -> anyhow::Result<Vec<u8>> {
+    if ciphertext.len() < NONCE_LEN {
+        anyhow::bail!("Ciphertext too short");
+    }
+    let (nonce_bytes, ct_with_tag) = ciphertext.split_at(NONCE_LEN);
+    let nonce = Nonce::from_slice(nonce_bytes);
+    let mut counter_bytes = [0u8; 8];
+    counter_bytes.copy_from_slice(&nonce_bytes[4..]);
+    let packet_nonce = u64::from_be_bytes(counter_bytes);
+    let mut last_seen = state.rx_last_nonce.lock().unwrap();
+    if packet_nonce <= *last_seen {
+        anyhow::bail!("Replay detected");
+    }
+    let cipher = Aes256Gcm::new_from_slice(&state.key)?;
+    let plaintext = cipher.decrypt(nonce, ct_with_tag)?;
+    *last_seen = packet_nonce;
+    Ok(plaintext)
+}
+
+pub async fn encrypt_frame(
+    plaintext: &[u8],
+    state: Arc<crate::transport::frame::CryptoState>,
+) -> anyhow::Result<Vec<u8>> {
+    let state = state.clone();
+    let data = plaintext.to_vec();
+    tokio::task::spawn_blocking(move || encrypt_frame_sync(&data, &state)).await?
+}
+
+pub async fn decrypt_frame(
+    ciphertext: &[u8],
+    state: Arc<crate::transport::frame::CryptoState>,
+) -> anyhow::Result<Vec<u8>> {
+    let state = state.clone();
+    let data = ciphertext.to_vec();
+    tokio::task::spawn_blocking(move || decrypt_frame_sync(&data, &state)).await?
+}
+use crate::transport::frame::CryptoState;
 pub async fn handle_data_loop(
     socket: UdpSocket,
     peer_addr: std::net::SocketAddr,
@@ -228,10 +287,9 @@ pub async fn handle_data_loop(
     mut peers: peers_table,
     allocator: Arc<tokio::sync::Mutex<IpAllocator>>,
     cancel: tokio_util::sync::CancellationToken,
-    interface: TunInterface,
+    crypto: Arc<CryptoState>,
 ) {
     let mut raw_buf = vec![0u8; 2048];
-    let mut frame_buf: Vec<u8> = Vec::with_capacity(2048);
     let idle_timeout = std::time::Duration::from_secs(120);
 
     loop {
@@ -254,17 +312,21 @@ pub async fn handle_data_loop(
                     }
                 };
                 if src != peer_addr { continue; }
-                let frame = match decode_frame(&raw_buf[..len]){
+
+                let frame_bytes = match decrypt_frame(&raw_buf[..len], crypto.clone()).await{
+                    Ok(v) => v,
+                    Err(_) => continue               };
+
+                let frame = match decode_frame(&frame_bytes){
                     Ok(f) => f,
                     Err(e) => {
                         warn!("frame decode failed from {} : {:?}", peer_addr, e);
-                        break;
+                        continue;
                     }
                 };
 
                 if frame.kind != FrameKind::DATA {
-                    warn!("frame kind {:?} does not match DATA ", frame.kind);
-                    break;
+                    continue;
                 }
 
 
@@ -275,8 +337,6 @@ pub async fn handle_data_loop(
                         continue;
                     }
                 };
-
-
                 if pkt_src_ip != assigned_ip {
                     warn!("spoofing detected!! from {}: src={} expected={}",
                           peer_addr, pkt_src_ip, assigned_ip);
@@ -295,6 +355,33 @@ pub async fn handle_data_loop(
     if let peer = peers.remove(peer_addr).unwrap() {
         allocator.lock().await.release(peer.user_ip);
         tracing::info!("IP {} returned to pool", peer.user_ip);
+    }
+}
+pub async fn tun_write_all(
+    mut rx: tokio::sync::mpsc::Receiver<Vec<u8>>,
+    tun: Arc<std::sync::Mutex<TunInterface>>,
+    cancel: tokio_util::sync::CancellationToken,
+) {
+    loop {
+        tokio::select! {
+            _ = cancel.cancelled() => {
+                break;
+            },
+
+            pkt = rx.recv() => match pkt {
+                Some(mut packet) => {
+                    let tun_arc = tun.clone();
+
+                    tokio::task::spawn_blocking(move || {
+                            let mut guard = tun_arc
+                            .lock()
+                            .expect("Tun poisoned");
+                        guard.write_packet(packet.as_mut_slice());
+                    }).await;
+                }
+                None => break,
+            }
+        }
     }
 }
 //pub async fn tun_to_udp_loop(
