@@ -10,6 +10,7 @@ use std::collections::HashSet;
 use std::net::Ipv4Addr;
 use std::sync::{Arc, Mutex};
 use tokio::net::UdpSocket;
+use tokio::sync::mpsc;
 use vpn_types::VpnProfile;
 extern crate scopeguard;
 use tracing::{info, warn};
@@ -23,18 +24,25 @@ pub async fn bind_token(profile: VpnProfile) -> Token {
     token.fill_token_vless(&profile);
     token
 }
-#[derive(Eq, Hash, PartialEq, Clone, Copy)]
+#[derive(Clone)]
 pub struct Peer {
     pub user_ip: Ipv4Addr,
     pub public_socket: std::net::SocketAddr,
     pub last_seen: std::time::Instant,
+    pub crypto: Arc<CryptoState>,
 }
 impl Peer {
-    pub fn new(ip: Ipv4Addr, sock: std::net::SocketAddr, time: std::time::Instant) -> Self {
+    pub fn new(
+        ip: Ipv4Addr,
+        sock: std::net::SocketAddr,
+        time: std::time::Instant,
+        crypto: Arc<CryptoState>,
+    ) -> Self {
         Self {
             user_ip: ip,
             public_socket: sock,
             last_seen: time,
+            crypto: crypto,
         }
     }
 }
@@ -82,36 +90,34 @@ impl IpAllocator {
         (self.max - 1) as usize - self.used.len()
     }
 }
+use tokio::sync::Mutex as TokioMutex;
 pub struct ServerState {
-    pub allocator: Mutex<IpAllocator>,
-    pub peers: peers_table,
+    pub allocator: TokioMutex<IpAllocator>,
+    pub peers: TokioMutex<peers_table>,
 }
 impl ServerState {
     pub async fn connect_peer(&mut self, socket: std::net::SocketAddr) -> Option<Ipv4Addr> {
-        let ip = self.allocator.lock().unwrap().allocate()?;
-        let peer = Peer::new(ip, socket, std::time::Instant::now());
-        self.peers.put_peer_and_socket(socket, peer);
+        let ip = self.allocator.lock().await.allocate()?;
+        let peer = Arc::new(Peer::new(ip, socket, std::time::Instant::now()));
+        self.peers.lock().await.put_peer_and_socket(socket, peer);
         Some(ip)
     }
     pub async fn disconnect_peer(&mut self, socket: std::net::SocketAddr) -> Option<()> {
-        if let peer = self.peers.by_user_public_socket.get(&socket) {
-            self.allocator
-                .lock()
-                .unwrap()
-                .release(peer.unwrap().user_ip);
+        if let peer = self.peers.lock().await.by_user_public_socket.get(&socket) {
+            self.allocator.lock().await.release(peer.unwrap().user_ip);
         }
         Some(())
     }
 }
 pub struct peers_table {
-    pub by_user_ip: std::collections::HashMap<std::net::Ipv4Addr, Peer>,
-    pub by_user_public_socket: std::collections::HashMap<std::net::SocketAddr, Peer>,
+    pub by_user_ip: std::collections::HashMap<std::net::Ipv4Addr, Arc<Peer>>,
+    pub by_user_public_socket: std::collections::HashMap<std::net::SocketAddr, Arc<Peer>>,
 }
 impl peers_table {
-    pub fn put_peer_and_ip(&mut self, ip: std::net::Ipv4Addr, peer: Peer) {
+    pub fn put_peer_and_ip(&mut self, ip: std::net::Ipv4Addr, peer: Arc<Peer>) {
         self.by_user_ip.insert(ip, peer);
     }
-    pub fn put_peer_and_socket(&mut self, socket: std::net::SocketAddr, peer: Peer) {
+    pub fn put_peer_and_socket(&mut self, socket: std::net::SocketAddr, peer: Arc<Peer>) {
         self.by_user_public_socket.insert(socket, peer);
     }
     pub fn new() -> Self {
@@ -120,16 +126,26 @@ impl peers_table {
             by_user_public_socket: std::collections::HashMap::new(),
         }
     }
-    pub fn remove(&mut self, socket: std::net::SocketAddr) -> std::io::Result<Peer> {
-        let peer = self.by_user_public_socket.remove(&socket);
-        Ok(peer.unwrap())
+    pub fn remove(&mut self, socket: &std::net::SocketAddr) -> Option<Arc<Peer>> {
+        if let Some(peer) = self.by_user_public_socket.remove(socket) {
+            self.by_user_ip.remove(&peer.user_ip);
+            Some(peer)
+        } else {
+            None
+        }
+    }
+    pub fn get_by_ip(&self, ip: &std::net::Ipv4Addr) -> Option<Arc<Peer>> {
+        self.by_user_ip.get(ip).cloned()
+    }
+    pub fn get_by_addr(&self, socket: &std::net::SocketAddr) -> Option<Arc<Peer>> {
+        self.by_user_public_socket.get(socket).cloned()
     }
 }
 pub async fn handle_hello(
     socket: &UdpSocket,
     token: Token,
     session: &mut Session,
-    mut peers: peers_table,
+    mut peers: std::sync::Arc<TokioMutex<peers_table>>,
 ) -> Result<(), HelloAckError> {
     let mut buf = vec![0u8; 2048];
     let (res, peer_adress) = socket.recv_from(&mut buf).await?;
@@ -142,21 +158,20 @@ pub async fn handle_hello(
     if payload_token != token.token {
         return Err(HelloAckError::TokenMismatch(payload_token.to_string()));
     }
-
     session.session_id = ready.session_id;
     session.authentificated = true;
     session.peer_addr = Some(peer_adress);
-    let ip = parse_ipv4_src(&mut buf);
-    let peer = Peer::new(ip.unwrap(), peer_adress, std::time::Instant::now());
-    peers.put_peer_and_socket(peer_adress, peer);
     Ok(())
 }
-use std::sync::mpsc;
-pub async fn send_helloack(socket: &UdpSocket, session: &Session) -> std::io::Result<()> {
+pub async fn send_helloack(
+    socket: &UdpSocket,
+    session: &Session,
+    peer_addr: std::net::SocketAddr,
+) -> std::io::Result<()> {
     let kind = FrameKind::HELLOACK;
     let session_id = session.session_id;
     let mut frame = encode_frame(kind, session_id, &mut vec![]);
-    socket.send(&mut frame).await;
+    socket.send_to(&mut frame, peer_addr).await?;
     Ok(())
 }
 //pub async fn handle_data(socket: &UdpSocket, session: &mut Session) -> Result<(), anyhow::Error> {
@@ -284,7 +299,7 @@ pub async fn handle_data_loop(
     peer_addr: std::net::SocketAddr,
     assigned_ip: Ipv4Addr,
     tx_to_tun: mpsc::Sender<Vec<u8>>,
-    mut peers: peers_table,
+    mut peers: Arc<TokioMutex<peers_table>>,
     allocator: Arc<tokio::sync::Mutex<IpAllocator>>,
     cancel: tokio_util::sync::CancellationToken,
     crypto: Arc<CryptoState>,
@@ -342,7 +357,7 @@ pub async fn handle_data_loop(
                           peer_addr, pkt_src_ip, assigned_ip);
                     break;
                 }
-                if tx_to_tun.send(frame.payload).is_err() {
+                if tx_to_tun.send(frame.payload).await.is_err() {
                     info!("TUN channel closed, stopping {}", peer_addr);
                     break;
                 }
@@ -352,7 +367,7 @@ pub async fn handle_data_loop(
         }
     }
     tracing::info!("Cleaning up peer {}", peer_addr);
-    if let peer = peers.remove(peer_addr).unwrap() {
+    if let peer = peers.lock().await.get_by_addr(&peer_addr).unwrap() {
         allocator.lock().await.release(peer.user_ip);
         tracing::info!("IP {} returned to pool", peer.user_ip);
     }
@@ -373,11 +388,11 @@ pub async fn tun_write_all(
                     let tun_arc = tun.clone();
 
                     tokio::task::spawn_blocking(move || {
-                            let mut guard = tun_arc
+                            let guard = tun_arc
                             .lock()
                             .expect("Tun poisoned");
                         guard.write_packet(packet.as_mut_slice());
-                    }).await;
+                    }).await.unwrap_or_else(|e| tracing::error!("Tun write panicked {}", e));
                 }
                 None => break,
             }
@@ -406,5 +421,56 @@ fn parse_ipv4_dst(buf: &[u8]) -> Option<std::net::Ipv4Addr> {
         return Some(std::net::Ipv4Addr::new(buf[16], buf[17], buf[18], buf[19]));
     } else {
         return None;
+    }
+}
+pub async fn tun_reader_loop(
+    tun: Arc<std::sync::Mutex<TunInterface>>,
+    peers: Arc<TokioMutex<peers_table>>,
+    socket: tokio::net::UdpSocket,
+    cancel: tokio_util::sync::CancellationToken,
+) {
+    let mut buf = vec![0u8; 1500];
+    info!("TUN reader started");
+
+    loop {
+        tokio::select! {
+            _ = cancel.cancelled() => break,
+
+            res = tokio::task::spawn_blocking({
+                let tun = tun.clone();
+                let b = &mut buf[..];
+                move || {
+                    let mut guard = tun.lock().expect("TUN poisoned");
+                    guard.read_packet(b)
+                }
+            }) => {
+                let n = match res {
+                    Ok(Ok(len)) if len > 0 => len,
+                    _ => continue,
+                };
+
+                let raw_ip = &buf[..n];
+
+                let dst_ip = match parse_ipv4_dst(raw_ip) {
+                    Some(ip) => ip,
+                    None => continue,
+                };
+
+                let (peer_crypto, peer_addr, peer) = {
+                    match peers.lock().await.get_by_ip(&dst_ip) {
+                        Some(p) => (p.crypto.clone(), p.public_socket, p),
+                        None => continue,
+                    }
+                };
+
+                let frame = encode_frame(FrameKind::DATA, peer,) ; // session_id можно взять из пира
+                let encrypted = match encrypt_frame(&frame, peer_crypto).await {
+                    Ok(e) => e,
+                    Err(_) => continue,
+                };
+
+                let _ = socket.send_to(&encrypted, peer_addr).await;
+            }
+        }
     }
 }

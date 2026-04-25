@@ -1,0 +1,2 @@
+std::ops::RangeTo<impl std::future::Future<Output = std::result::Result<usize, std::io::Error>>>
+std::ops::Index<std::ops::RangeTo<impl std::future::Future<Output = std::result::Result<usize, std::io::Error>>>>
