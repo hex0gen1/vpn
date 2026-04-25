@@ -33,6 +33,7 @@ pub struct ConnectRequest {
 pub enum Protocol {
     Vless,
     Unknown(String),
+    None,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -46,9 +47,12 @@ pub enum Security {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Transport {
     Tcp,
+    Udp,
+    TcpUdp,
     Ws,
     Grpc,
     Other(String),
+    Quic,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -66,4 +70,65 @@ pub struct VpnProfile {
     pub spx: Option<String>,
     pub flow: Option<String>,
     pub tag: Option<String>,
+}
+impl VpnProfile {
+    pub fn new() -> Self {
+        Self {
+            protocol: Protocol::None,
+            uuid: String::new(),
+            host: String::new(),
+            port: 0,
+            security: Some(Security::None),
+            transport: Some(Transport::Udp),
+            sni: Some(String::new()),
+            fp: Some(String::new()),
+            pbk: Some(String::new()),
+            sid: Some(String::new()),
+            spx: Some(String::new()),
+            flow: Some(String::new()),
+            tag: Some(String::new()),
+        }
+    }
+    pub fn display_name(&self) -> String {
+        let default = String::from("NT[no tag");
+        let tag = self.tag.clone().unwrap_or(default);
+        return tag;
+    }
+}
+impl Default for VpnProfile {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl Security {
+    pub fn as_str(&self) -> String {
+        match self {
+            Security::Reality => String::from("Reality"),
+            Security::Tls => String::from("Tls"),
+            Security::Other(text) => String::from(text),
+            Security::None => String::new(),
+        }
+    }
+}
+impl Transport {
+    pub fn as_str(&self) -> String {
+        match self {
+            Transport::Tcp => String::from("Tcp"),
+            Transport::Udp => String::from("Udp"),
+            Transport::TcpUdp => String::from("Tcp+Udp"),
+            Transport::Ws => String::from("Wireshark"),
+            Transport::Grpc => String::from("Grpc"),
+            Transport::Quic => String::from("Quic"),
+            Transport::Other(text) => String::from(text),
+        }
+    }
+}
+impl Protocol {
+    pub fn as_str(&self) -> String {
+        match self {
+            Protocol::Vless => String::from("Vless"),
+            Protocol::Unknown(text) => String::from(text),
+            Protocol::None => String::new(),
+        }
+    }
 }

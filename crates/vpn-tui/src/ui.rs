@@ -1,15 +1,13 @@
 use crate::app::{App, Popup, Screen};
-use crate::backend::orchestrator;
-use crate::backend::state::Command;
 use crate::screens::{home, logs, parser, pdetails, profiles};
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     text::Span,
     widgets::{Block, Borders, Clear, Paragraph},
 };
-use vpn_parse::model::Protocol;
+use vpn_types::Protocol;
 #[derive(Debug)]
 pub enum SK {
     Info,

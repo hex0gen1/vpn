@@ -1,8 +1,7 @@
 use crate::ui::{SB, SK};
 use serde::{Deserialize, Serialize};
 use vpn_core::{CoreError, CoreState};
-use vpn_parse::model::{Protocol, Security, Transport, VpnProfile};
-use vpn_parse::parser::parse_vless_link;
+use vpn_types::{Protocol, Security, Transport, VpnProfile};
 #[derive(Debug, Clone)]
 pub struct Profile {
     pub name: String,
