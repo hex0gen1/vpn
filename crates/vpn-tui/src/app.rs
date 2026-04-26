@@ -91,6 +91,7 @@ pub enum Mode {
     Input,
     Normal,
     Popup(Popup),
+    Details,
 }
 #[derive(Debug)]
 pub enum DGName {
@@ -307,7 +308,11 @@ impl App {
 
         group.push_field(DetailField::new(
             DName::Security,
-            profile.security.as_ref().unwrap().as_str(),
+            profile
+                .security
+                .as_ref()
+                .unwrap_or(&Security::None)
+                .as_str(),
         ));
 
         group.push_field(DetailField::new(

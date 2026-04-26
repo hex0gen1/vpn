@@ -22,5 +22,6 @@ scopeguard = "1.2.0"
 futures = "0.3.32"
 aes-gcm = { version = "0.10.3", features = ["std"] }
 aead = "0.5.2"
-rand = "0.10.1"
+rand = { version = "0.10.1", features = ["thread_rng"] }
 getrandom = "0.4.2"
+url = "2.5.8"

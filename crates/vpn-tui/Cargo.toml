@@ -6,8 +6,7 @@ edition.workspace = true
 [dependencies]
 vpn-core = { path = "../vpn-core" }
 vpn-types = { path = "../vpn-types" }
-vpn-daemon = {path = "../vpn-daemon"}
-vpn-parse = {path = "../vpn-parse"}
+vpn-daemon = { path = "../vpn-daemon" }
 ratatui.workspace = true
 crossterm.workspace = true
 tokio.workspace = true

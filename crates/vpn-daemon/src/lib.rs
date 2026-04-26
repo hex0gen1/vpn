@@ -1,10 +1,11 @@
 //mod config;
-mod daemon;
+pub mod daemon;
 //mod ipc;
-mod linux;
-mod stats;
-mod tests;
-mod transport;
+pub mod linux;
+pub mod parser;
+pub mod stats;
+pub mod tests;
+pub mod transport;
 use anyhow::Result;
 
 pub async fn run() -> anyhow::Result<()> {

@@ -112,6 +112,7 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) 
         crate::app::Mode::Input => "Input mode".to_string(),
         crate::app::Mode::Normal => "Normal mode".to_string(),
         crate::app::Mode::Popup(popup) => format!("Popup mode{}", popup.as_str()),
+        crate::app::Mode::Details => "Details mode".to_string(),
     };
     let status_msg = app.status.message.as_str();
     let status_kind = match app.status.sk {

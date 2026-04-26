@@ -3,9 +3,7 @@ use crate::linux::routing::{
 };
 use crate::linux::tun::{TunFd, TunInterface, create_interface};
 use crate::transport::client::{HelloAckError, Token};
-use crate::transport::frame::{
-    DecodeError, DecodedFrame, FrameKind, Session, decode_frame, encode_frame,
-};
+use crate::transport::frame::{DecodeError, DecodedFrame, FrameKind, decode_frame, encode_frame};
 use std::collections::HashSet;
 use std::net::Ipv4Addr;
 use std::sync::{Arc, Mutex};
@@ -30,19 +28,25 @@ pub struct Peer {
     pub public_socket: std::net::SocketAddr,
     pub last_seen: std::time::Instant,
     pub crypto: Arc<CryptoState>,
+    pub user_id: String,
+    pub session_id: u64,
 }
 impl Peer {
     pub fn new(
         ip: Ipv4Addr,
         sock: std::net::SocketAddr,
         time: std::time::Instant,
-        crypto: Arc<CryptoState>,
+        crypto_cx: Arc<CryptoState>,
+        user_id_rx: String,
+        session_id: u64,
     ) -> Self {
         Self {
             user_ip: ip,
             public_socket: sock,
             last_seen: time,
-            crypto: crypto,
+            crypto: crypto_cx,
+            user_id: user_id_rx,
+            session_id: session_id,
         }
     }
 }
@@ -95,23 +99,58 @@ pub struct ServerState {
     pub allocator: TokioMutex<IpAllocator>,
     pub peers: TokioMutex<peers_table>,
 }
+pub fn generate_session_id() -> u64 {
+    let mut bytes = [0u8; 8];
+    getrandom::fill(&mut bytes).expect("OS entropy failed");
+    u64::from_be_bytes(bytes)
+}
 impl ServerState {
-    pub async fn connect_peer(&mut self, socket: std::net::SocketAddr) -> Option<Ipv4Addr> {
-        let ip = self.allocator.lock().await.allocate()?;
-        let peer = Arc::new(Peer::new(ip, socket, std::time::Instant::now()));
-        self.peers.lock().await.put_peer_and_socket(socket, peer);
+    pub async fn connect_peer(
+        &self,
+        socket: std::net::SocketAddr,
+        user_id: String,
+    ) -> Option<Ipv4Addr> {
+        let ip = self
+            .allocator
+            .lock()
+            .await
+            .allocate()
+            .ok_or_else(|| anyhow::anyhow!("Ip pool exhausted!"))
+            .ok()?;
+        let crypto = generate_crypto_state()
+            .map_err(|e| anyhow::anyhow!("CryptoGeneration failed! {}", e))
+            .ok()?;
+        let peer = Arc::new(Peer::new(
+            ip,
+            socket,
+            std::time::Instant::now(),
+            crypto,
+            user_id,
+            generate_session_id(),
+        ));
+        self.peers.lock().await.insert(peer);
         Some(ip)
     }
-    pub async fn disconnect_peer(&mut self, socket: std::net::SocketAddr) -> Option<()> {
-        if let peer = self.peers.lock().await.by_user_public_socket.get(&socket) {
-            self.allocator.lock().await.release(peer.unwrap().user_ip);
+    pub async fn disconnect_peer(&mut self, socket: std::net::SocketAddr) -> bool {
+        let mut peers = self.peers.lock().await;
+        if let Some(peer) = peers.remove(&socket) {
+            self.allocator.lock().await.release(peer.user_ip);
+            true
+        } else {
+            false
         }
-        Some(())
+    }
+    pub fn new(subnet: Ipv4Addr, pool_size: u32) -> Self {
+        Self {
+            allocator: tokio::sync::Mutex::new(IpAllocator::new(subnet, pool_size)),
+            peers: tokio::sync::Mutex::new(peers_table::new()),
+        }
     }
 }
 pub struct peers_table {
     pub by_user_ip: std::collections::HashMap<std::net::Ipv4Addr, Arc<Peer>>,
     pub by_user_public_socket: std::collections::HashMap<std::net::SocketAddr, Arc<Peer>>,
+    pub by_user_id: std::collections::HashMap<String, Arc<Peer>>,
 }
 impl peers_table {
     pub fn put_peer_and_ip(&mut self, ip: std::net::Ipv4Addr, peer: Arc<Peer>) {
@@ -124,6 +163,7 @@ impl peers_table {
         Self {
             by_user_ip: std::collections::HashMap::new(),
             by_user_public_socket: std::collections::HashMap::new(),
+            by_user_id: std::collections::HashMap::new(),
         }
     }
     pub fn remove(&mut self, socket: &std::net::SocketAddr) -> Option<Arc<Peer>> {
@@ -134,18 +174,35 @@ impl peers_table {
             None
         }
     }
+    pub fn insert(&mut self, peer: Arc<Peer>) {
+        self.by_user_public_socket
+            .insert(peer.public_socket, peer.clone());
+        self.by_user_ip.insert(peer.user_ip, peer.clone());
+        self.by_user_id.insert(peer.user_id.clone(), peer);
+    }
+    pub fn put_user_id_and_socket(
+        &mut self,
+        user_id: String,
+        peer: Arc<Peer>,
+    ) -> Option<Arc<Peer>> {
+        self.by_user_id.insert(user_id, peer)
+    }
     pub fn get_by_ip(&self, ip: &std::net::Ipv4Addr) -> Option<Arc<Peer>> {
         self.by_user_ip.get(ip).cloned()
     }
     pub fn get_by_addr(&self, socket: &std::net::SocketAddr) -> Option<Arc<Peer>> {
         self.by_user_public_socket.get(socket).cloned()
     }
+    pub fn get_by_id(&self, id: &str) -> Option<Arc<Peer>> {
+        self.by_user_id.get(id).cloned()
+    }
 }
 pub async fn handle_hello(
     socket: &UdpSocket,
-    token: Token,
-    session: &mut Session,
+    server_token: &Token,
     mut peers: std::sync::Arc<TokioMutex<peers_table>>,
+    allocator: &Arc<tokio::sync::Mutex<IpAllocator>>,
+    state: &Arc<ServerState>,
 ) -> Result<(), HelloAckError> {
     let mut buf = vec![0u8; 2048];
     let (res, peer_adress) = socket.recv_from(&mut buf).await?;
@@ -155,22 +212,36 @@ pub async fn handle_hello(
     }
     let payload_token =
         std::str::from_utf8(&ready.payload).map_err(|c| HelloAckError::InvalidTokenEncoding)?;
-    if payload_token != token.token {
+    if payload_token != server_token.token {
         return Err(HelloAckError::TokenMismatch(payload_token.to_string()));
     }
-    session.session_id = ready.session_id;
-    session.authentificated = true;
-    session.peer_addr = Some(peer_adress);
+    let user_id = payload_token.to_string();
+    state.connect_peer(peer_adress, user_id);
+    send_helloack(socket, peer_adress, peers);
     Ok(())
+}
+
+pub fn generate_crypto_state() -> std::io::Result<Arc<CryptoState>> {
+    let mut key = [0u8; 32];
+    getrandom::fill(&mut key);
+
+    Ok(Arc::new(CryptoState {
+        key: key,
+        tx_nonce: std::sync::atomic::AtomicU64::new(0),
+        rx_last_nonce: Arc::new(Mutex::new(0 as u64)),
+        cipher_type: crate::transport::frame::CipherAlg::AesGcm,
+    }))
 }
 pub async fn send_helloack(
     socket: &UdpSocket,
-    session: &Session,
     peer_addr: std::net::SocketAddr,
+    peers: Arc<TokioMutex<peers_table>>,
 ) -> std::io::Result<()> {
     let kind = FrameKind::HELLOACK;
-    let session_id = session.session_id;
-    let mut frame = encode_frame(kind, session_id, &mut vec![]);
+    let peer = peers.lock().await.get_by_addr(&peer_addr).unwrap();
+    let session_id = peer.session_id;
+    let mut payload = vec![];
+    let mut frame = encode_frame(kind, session_id, &mut payload);
     socket.send_to(&mut frame, peer_addr).await?;
     Ok(())
 }
@@ -303,9 +374,13 @@ pub async fn handle_data_loop(
     allocator: Arc<tokio::sync::Mutex<IpAllocator>>,
     cancel: tokio_util::sync::CancellationToken,
     crypto: Arc<CryptoState>,
+    state: Arc<std::sync::Mutex<ServerState>>,
 ) {
     let mut raw_buf = vec![0u8; 2048];
     let idle_timeout = std::time::Duration::from_secs(120);
+    if let peer = peers.lock().await {
+        peer.by_user_public_socket.get(&peer_addr);
+    }
 
     loop {
         tokio::select! {
@@ -366,10 +441,13 @@ pub async fn handle_data_loop(
             }
         }
     }
-    tracing::info!("Cleaning up peer {}", peer_addr);
-    if let peer = peers.lock().await.get_by_addr(&peer_addr).unwrap() {
-        allocator.lock().await.release(peer.user_ip);
-        tracing::info!("IP {} returned to pool", peer.user_ip);
+    if state.lock().unwrap().disconnect_peer(peer_addr).await {
+        info!(
+            "Peer {} disconnected, Ip {} released to pool.",
+            peer_addr, assigned_ip
+        )
+    } else {
+        info!("Peer {} already removed from the table.", peer_addr)
     }
 }
 pub async fn tun_write_all(
@@ -424,7 +502,7 @@ fn parse_ipv4_dst(buf: &[u8]) -> Option<std::net::Ipv4Addr> {
     }
 }
 pub async fn tun_reader_loop(
-    tun: Arc<std::sync::Mutex<TunInterface>>,
+    tun: Arc<TunInterface>,
     peers: Arc<TokioMutex<peers_table>>,
     socket: tokio::net::UdpSocket,
     cancel: tokio_util::sync::CancellationToken,
@@ -436,18 +514,22 @@ pub async fn tun_reader_loop(
         tokio::select! {
             _ = cancel.cancelled() => break,
 
-            res = tokio::task::spawn_blocking({
-                let tun = tun.clone();
-                let b = &mut buf[..];
-                move || {
-                    let mut guard = tun.lock().expect("TUN poisoned");
-                    guard.read_packet(b)
-                }
-            }) => {
+            res = tun.read_packet(&mut buf) => {
                 let n = match res {
-                    Ok(Ok(len)) if len > 0 => len,
-                    _ => continue,
-                };
+                    Ok(len) => match len{
+                        0 => {
+                            tracing::warn!("Tun device returned EOF(interface is closed"); break;}
+                        n => n,
+                    },
+                    Ok(0) => {
+                        tracing::warn!("TUN EOF (interface closed)");
+                        break;
+                    }
+                    Err(e) => {
+                        tracing::warn!("TUN read error: {}", e);
+                        continue;
+                    }
+            };
 
                 let raw_ip = &buf[..n];
 
@@ -463,7 +545,7 @@ pub async fn tun_reader_loop(
                     }
                 };
 
-                let frame = encode_frame(FrameKind::DATA, peer,) ; // session_id можно взять из пира
+                let frame = encode_frame(FrameKind::DATA, peer.session_id, raw_ip);
                 let encrypted = match encrypt_frame(&frame, peer_crypto).await {
                     Ok(e) => e,
                     Err(_) => continue,

@@ -14,6 +14,9 @@ impl Token {
             token: String::from(""),
         }
     }
+    pub fn extract_user_id(&self) -> &str {
+        &self.token
+    }
 }
 pub async fn connect_udp(server_addr: String) -> std::io::Result<tokio::net::UdpSocket> {
     let local_port = "0.0.0.0:0";
@@ -30,6 +33,7 @@ pub enum HelloAckError {
     BadSessionId(u64),
     TokenMismatch(String),
     InvalidTokenEncoding,
+    IpPoolExhausted,
 }
 
 impl From<std::io::Error> for HelloAckError {

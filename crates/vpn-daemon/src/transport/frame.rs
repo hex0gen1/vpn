@@ -8,11 +8,6 @@ pub enum DecodeError {
     HelloAckError,
 }
 #[derive(Debug, Clone)]
-pub struct Session {
-    pub session_id: u64,
-    pub authentificated: bool,
-    pub peer_addr: Option<std::net::SocketAddr>,
-}
 pub enum CipherAlg {
     AesGcm,
     ChaCha20,
@@ -31,15 +26,6 @@ impl CryptoState {
         let mut out = [0u8; 12];
         out[4..].copy_from_slice(&n.to_be_bytes());
         out
-    }
-}
-impl Session {
-    pub fn new() -> Self {
-        Self {
-            session_id: 0,
-            authentificated: false,
-            peer_addr: None,
-        }
     }
 }
 #[derive(Debug, Clone)]
