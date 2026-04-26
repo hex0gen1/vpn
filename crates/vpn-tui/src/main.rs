@@ -162,14 +162,16 @@ fn handle_input_event(app: &mut app::App, event: Event) {
             }
             match key.code {
                 KeyCode::Esc => app.mode = Mode::Normal,
-                KeyCode::Backspace => {
-                    app.input_str.pop();
-                }
                 KeyCode::Enter => {
                     let input = std::mem::take(&mut app.input_str);
                     app.mode = Mode::Normal;
                     match vpn_daemon::parser::parse_vless::parse_vless_link(&input) {
-                        Ok(profile) => app.profiles.push(profile),
+                        Ok(profile) => {
+                            app.profiles.push(profile.clone());
+                            app.popup = Popup::PreviewAdd(profile.clone());
+                            app.mode = Mode::Popup(Popup::PreviewAdd(profile.clone()));
+                            app.selected_profile += 1;
+                        }
                         Err(err) => {
                             eprintln!("parse error: {err}");
                         }
@@ -180,6 +182,29 @@ fn handle_input_event(app: &mut app::App, event: Event) {
                 }
                 KeyCode::Char(c) => {
                     app.input_str.push(c);
+                    app.cursor_pos += 1;
+                }
+                KeyCode::Left => {
+                    if app.cursor_pos > 0 {
+                        app.cursor_pos -= 1;
+                    }
+                }
+                KeyCode::Right => {
+                    if app.cursor_pos < app.input_str.len() {
+                        app.cursor_pos += 1;
+                    }
+                }
+                KeyCode::Backspace => {
+                    if app.cursor_pos > 0 {
+                        app.cursor_pos -= 1;
+                        app.input_str.remove(app.cursor_pos);
+                    }
+                }
+                KeyCode::Home => {
+                    app.cursor_pos = 0;
+                }
+                KeyCode::End => {
+                    app.cursor_pos = app.input_str.len();
                 }
                 _ => {}
             }
@@ -299,6 +324,26 @@ fn handle_popup_event(
                     KeyCode::Esc | KeyCode::Char('q') => {
                         app.mode = Mode::Normal;
                         app.popup = Popup::None;
+                    }
+                    _ => {}
+                }
+            }
+            _ => {}
+        },
+        Popup::PreviewAdd(profile) => match event {
+            Event::Key(key) => {
+                if key.kind != KeyEventKind::Press {
+                    return;
+                }
+                match key.code {
+                    KeyCode::Enter => {
+                        app.mode = Mode::Normal;
+                        app.popup = Popup::None;
+                    }
+                    KeyCode::Esc => {
+                        app.mode = Mode::Normal;
+                        app.popup = Popup::None;
+                        app.profiles.remove(app.selected_profile);
                     }
                     _ => {}
                 }

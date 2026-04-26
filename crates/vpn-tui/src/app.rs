@@ -1,7 +1,12 @@
 use crate::ui::{SB, SK};
+use ratatui::style::Color;
+use ratatui::widgets::{BorderType, Padding};
 use serde::{Deserialize, Serialize};
 use vpn_core::{CoreError, CoreState};
 use vpn_types::{Protocol, Security, Transport, VpnProfile};
+//style constants
+use crate::screens::constants;
+
 #[derive(Debug, Clone)]
 pub struct Profile {
     pub name: String,
@@ -57,6 +62,7 @@ pub enum Popup {
     ConfirmQuit,
     Connect,
     Error(String),
+    PreviewAdd(VpnProfile),
 }
 impl Popup {
     pub fn as_str(&self) -> &'static str {
@@ -67,6 +73,7 @@ impl Popup {
             Popup::None => "NoPopup",
             Popup::Connect => "Connect",
             Popup::Error(error) => "Error",
+            Popup::PreviewAdd(profile) => "ConfirmAdd",
         }
     }
 }
@@ -85,6 +92,7 @@ pub struct App {
     pub current_detail: u64,
     pub detail_groups: Vec<DetailGroup>,
     pub details_on: bool,
+    pub cursor_pos: usize,
 }
 #[derive(Debug)]
 pub enum Mode {
@@ -235,6 +243,7 @@ impl App {
             detail_groups: Vec::new(),
             current_detail: 0,
             details_on: false,
+            cursor_pos: 0,
         }
     }
     pub fn build_general_group(profile: &VpnProfile) -> DetailGroup {

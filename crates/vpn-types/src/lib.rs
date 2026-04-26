@@ -29,14 +29,14 @@ pub struct ConnectRequest {
     pub server_id: String,
     pub mode: AppMode,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub enum Protocol {
     Vless,
     Unknown(String),
     None,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub enum Security {
     Reality,
     Tls,
@@ -44,7 +44,7 @@ pub enum Security {
     Other(String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub enum Transport {
     Tcp,
     Udp,
@@ -55,7 +55,7 @@ pub enum Transport {
     Quic,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct VpnProfile {
     pub protocol: Protocol,
     pub uuid: String,
