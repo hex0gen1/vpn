@@ -61,7 +61,12 @@ pub struct SB {
     pub message: String,
     pub sk: SK,
 }
-pub fn render(frame: &mut Frame, app: &App) {
+use crate::backend::backend::BackendState;
+pub fn render_deprecated(
+    frame: &mut Frame,
+    app: &App,
+    backend: &tokio::sync::watch::Ref<'_, BackendState>,
+) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -71,7 +76,7 @@ pub fn render(frame: &mut Frame, app: &App) {
         ])
         .split(frame.area());
 
-    render_header(frame, app, layout[0]);
+    render_header(frame, app, backend, layout[0]);
 
     match app.screen {
         Screen::Home => home::render(frame, app, layout[1]),
@@ -82,7 +87,7 @@ pub fn render(frame: &mut Frame, app: &App) {
     }
 
     //render_footer(frame, app, layout[2]);
-    render_status_bar(frame, app, layout[2]);
+    render_status_bar(frame, app, backend, layout[2]);
     if app.popup != Popup::None {
         match &app.popup {
             Popup::ConfirmQuit => render_exit_popup(frame, app, layout[1]),
@@ -99,6 +104,53 @@ pub fn render(frame: &mut Frame, app: &App) {
                 Host: {}:{}\n\
                 \n\
                 [Enter] Confirm  [Esc] Cancel",
+                    profile.tag.as_deref().unwrap_or("untitled"),
+                    profile.protocol.as_str(),
+                    profile.host,
+                    profile.port
+                );
+                render_popup_with_footer(frame, layout[1], "Confirm Add", &text, "");
+            }
+        }
+    }
+}
+pub fn render(frame: &mut Frame, app: &App, backend: &tokio::sync::watch::Ref<'_, BackendState>) {
+    let layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(5),
+            Constraint::Length(3),
+        ])
+        .split(frame.area());
+
+    render_header(frame, app, backend, layout[0]);
+
+    match app.screen {
+        Screen::Home => home::render(frame, app, layout[1]),
+        Screen::Profiles => profiles::render(frame, app, layout[1]),
+        Screen::Logs => logs::render(frame, app, layout[1]),
+        Screen::Parser => parser::render(frame, app, layout[1]),
+        Screen::ProfilesDetail => pdetails::render(frame, app, layout[1]),
+    }
+    render_status_bar(frame, app, backend, layout[2]);
+
+    if app.popup != Popup::None {
+        match &app.popup {
+            Popup::ConfirmQuit => render_exit_popup(frame, app, layout[1]),
+            Popup::ConfirmDelete => render_confirmdel_popup(frame, app, layout[1]),
+            Popup::None => (),
+            Popup::ParserResult => render_parseres_popup(frame, app, layout[1]),
+            Popup::Connect => render_connection_popup(frame, app, layout[1]),
+            Popup::Error(text) => render_error_popup(frame, app, layout[1], text.as_str()),
+            Popup::PreviewAdd(profile) => {
+                let text = format!(
+                    "Add new profile?\n\n\
+                     Tag: {}\n\
+                     Protocol: {}\n\
+                     Host: {}:{}\n\
+                     \n\
+                     [Enter] Confirm  [Esc] Cancel",
                     profile.tag.as_deref().unwrap_or("untitled"),
                     profile.protocol.as_str(),
                     profile.host,
@@ -222,7 +274,13 @@ pub fn render_confirm_popup(
         chunks[1],
     );
 }
-fn render_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
+use crate::app::ConnectionState;
+fn render_header(
+    frame: &mut Frame,
+    app: &App,
+    backend: &tokio::sync::watch::Ref<'_, BackendState>,
+    area: ratatui::layout::Rect,
+) {
     let title = match app.screen {
         Screen::Home => "Xanost VPN - Home",
         Screen::Profiles => "Xanost VPN - Profiles",
@@ -230,22 +288,32 @@ fn render_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         Screen::Parser => "Xanost VPN - Parser",
         Screen::ProfilesDetail => "Xanost VPN - Profile Details",
     };
+    let conn_status = match backend.connections {
+        ConnectionState::Disconnected => "Disconnected",
+        ConnectionState::Connecting => "Connecting...",
+        ConnectionState::Connected => "Connected",
+        ConnectionState::Failed => "Failed",
+    };
+    let profile_info = backend
+        .active_profile
+        .as_ref()
+        .map(|p| format!(" | {}", p))
+        .unwrap_or_default();
+    let header_text = format!("{}{} | {}", title, profile_info, conn_status);
 
-    let header =
-        Paragraph::new(title).block(Block::default().borders(Borders::ALL).title("Header"));
+    let header = Paragraph::new(header_text).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(constants::BORDER_STYLE)
+            .padding(constants::PADDING)
+            .title("Header"),
+    );
 
     frame.render_widget(header, area);
 }
 
 fn render_footer(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
-    let conn = match app.connection_state {
-        crate::app::ConnectionState::Disconnected => "Disconnected",
-        crate::app::ConnectionState::Connecting => "Connecting",
-        crate::app::ConnectionState::Connected => "Connected",
-        crate::app::ConnectionState::Failed => "Failed",
-    };
-
-    let footer_text = format!("q: quit | h: home | p: profiles | l: logs | status: {conn}");
+    let footer_text = format!("q: quit | h: home | p: profiles | l: logs ");
 
     let footer = Paragraph::new(footer_text).block(
         Block::default()
@@ -257,7 +325,12 @@ fn render_footer(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     frame.render_widget(footer, area);
 }
 
-fn render_status_bar(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
+fn render_status_bar_old(
+    frame: &mut Frame,
+    app: &App,
+    backend: &tokio::sync::watch::Ref<'_, BackendState>,
+    area: ratatui::layout::Rect,
+) {
     let input_type = match &app.mode {
         crate::app::Mode::Input => "Input mode".to_string(),
         crate::app::Mode::Normal => "Normal mode".to_string(),
@@ -265,23 +338,67 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) 
         crate::app::Mode::Details => "Details mode".to_string(),
     };
     let status_msg = app.status.message.as_str();
-    let status_kind = match app.status.sk {
-        SK::Error => String::from("!ERROR!"),
-        SK::Info => String::from("INFO"),
-        SK::Success => String::from("_SUCCESS_"),
-        SK::Warning => String::from("WARNING!"),
+    let (status_kind, color) = match app.status.sk {
+        SK::Error => (String::from("!ERROR!"), constants::COLOR_ERROR),
+        SK::Info => (String::from("INFO"), constants::COLOR_DIM),
+        SK::Success => (String::from("_SUCCESS_"), constants::COLOR_SUCCESS),
+        SK::Warning => (String::from("WARNING!"), constants::COLOR_WARN),
     };
+    let rx = format!("Rx speed: {}", app.rx_bps);
+    let tx = format!("Tx speed: {}", app.tx_bytes);
+
     let style = app.status.sk.style();
     let prefix = app.status.sk.prefix();
     let final_output =
         format!("type: {input_type} | {prefix}{status_kind} | message: {status_msg}");
     let status_bar = Span::styled(
         format!(
-            "{} | {} {} | {} ",
-            input_type, prefix, status_kind, status_msg
+            "{} | {} {} | {} | {} | {} ",
+            input_type, prefix, status_kind, status_msg, rx, tx
         ),
         style,
-    );
+    )
+    .style(Style::new().underline_color(color));
+
+    frame.render_widget(status_bar, area);
+}
+fn render_status_bar(
+    frame: &mut Frame,
+    app: &App,
+    backend: &tokio::sync::watch::Ref<'_, BackendState>,
+    area: Rect,
+) {
+    fn fmt_bytes(b: u64) -> String {
+        if b < 1024 {
+            format!("{} B", b)
+        } else if b > 1024 * 1024 {
+            format!("{:.1} KB", b as f64 / 1024.0)
+        } else if b > 1024 * 1024 * 1024 {
+            format!("{:.2} MB", b as f64 / 1_048_576.0)
+        } else {
+            format!("{:.3} GB", b as f64 / 1_073_741_824.0)
+        }
+    }
+
+    let rx = fmt_bytes(backend.rx_bytes);
+    let tx = fmt_bytes(backend.tx_bytes);
+    let peers = backend.peer_count;
+    let uptime = backend.uptime_dur;
+
+    let mut status_parts = vec![
+        format!("▼{} ↑{}", rx, tx),
+        format!("peers: {}", peers),
+        format!("up: {}s", uptime),
+    ];
+
+    if let Some(ref err) = backend.last_error {
+        status_parts.push(format!("⚠ {}", err));
+    }
+
+    let status_text = status_parts.join(" | ");
+
+    let status_bar = Paragraph::new(status_text)
+        .block(Block::default().borders(Borders::ALL).title("StatusBar"));
 
     frame.render_widget(status_bar, area);
 }

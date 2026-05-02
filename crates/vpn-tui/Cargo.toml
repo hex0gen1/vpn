@@ -8,7 +8,7 @@ vpn-core = { path = "../vpn-core" }
 vpn-types = { path = "../vpn-types" }
 vpn-daemon = { path = "../vpn-daemon" }
 ratatui.workspace = true
-crossterm.workspace = true
+crossterm = { workspace = true, features = ["event-stream"] }
 tokio.workspace = true
 tracing.workspace = true
 anyhow.workspace = true
@@ -19,3 +19,9 @@ futures = "0.3.32"
 tokio-util = {version ="0.7.18", features = ["codec"]}
 serde_json.workspace = true
 tracing-subscriber.workspace = true
+getrandom = "0.4.2"
+chrono = "0.4.44"
+nix = "0.31.2"
+lazy_static = "1.5.0"
+tracing-error = "0.2.1"
+directories = "6.0.0"

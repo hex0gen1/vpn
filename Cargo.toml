@@ -4,7 +4,6 @@ members = [
     "crates/vpn-core",
     "crates/vpn-daemon",
     "crates/vpn-tui",
-    "crates/vpn-parse",
 ]
 resolver = "2"
 

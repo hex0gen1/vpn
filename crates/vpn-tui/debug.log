@@ -1,0 +1,848 @@
+warning: unused imports: `Deserialize` and `Serialize`
+ --> crates/vpn-core/src/error.rs:1:13
+  |
+1 | use serde::{Deserialize, Serialize};
+  |             ^^^^^^^^^^^  ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: enum `CoreError` is never used
+ --> crates/vpn-core/src/error.rs:4:10
+  |
+4 | pub enum CoreError {
+  |          ^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `vpn-core` (lib) generated 2 warnings (run `cargo fix --lib -p vpn-core` to apply 1 suggestion)
+warning: unused imports: `SignalKind` and `Signal`
+ --> crates/vpn-daemon/src/daemon/runtime.rs:4:27
+  |
+4 | use tokio::signal::unix::{Signal, SignalKind};
+  |                           ^^^^^^  ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `TunInterface` and `create_interface`
+ --> crates/vpn-daemon/src/tests/tun_read.rs:1:25
+  |
+1 | ...::tun::{TunInterface, create_interface};
+  |            ^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::time::Duration`
+ --> crates/vpn-daemon/src/tests/tun_read.rs:3:5
+  |
+3 | use std::time::Duration;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `sleep` and `timeout`
+ --> crates/vpn-daemon/src/tests/tun_read.rs:5:19
+  |
+5 | use tokio::time::{sleep, timeout};
+  |                   ^^^^^  ^^^^^^^
+
+warning: unused import: `DecodedFrame`
+ --> crates/vpn-daemon/src/transport/client.rs:1:44
+  |
+1 | ...e::{DecodeError, DecodedFrame, FrameKind, decod...
+  |                     ^^^^^^^^^^^^
+
+warning: unused imports: `TunInterface` and `create_interface`
+ --> crates/vpn-daemon/src/transport/frame.rs:1:25
+  |
+1 | ...::tun::{TunInterface, create_interface};
+  |            ^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ClientNetworkConfig`, `RouteConfig`, and `TransportConfig`
+ --> crates/vpn-daemon/src/transport/server.rs:2:5
+  |
+2 |     ClientNetworkConfig, RouteConfig, ServerNetworkConfig, TransportConfig,
+  |     ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^                       ^^^^^^^^^^^^^^^
+
+warning: unused imports: `TunFd` and `create_interface`
+ --> crates/vpn-daemon/src/transport/server.rs:4:25
+  |
+4 | ...un::{TunFd, TunInterface, create_interface};
+  |         ^^^^^                ^^^^^^^^^^^^^^^^
+
+warning: unused imports: `DecodeError` and `DecodedFrame`
+ --> crates/vpn-daemon/src/transport/server.rs:6:31
+  |
+6 | ...t::frame::{DecodeError, DecodedFrame, FrameKind...
+  |               ^^^^^^^^^^^  ^^^^^^^^^^^^
+
+warning: type `peers_table` should have an upper camel case name
+   --> crates/vpn-daemon/src/transport/server.rs:198:12
+    |
+198 | pub struct peers_table {
+    |            ^^^^^^^^^^^ help: convert the identifier to upper camel case: `PeersTable`
+    |
+    = note: `#[warn(non_camel_case_types)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: unused import: `Key`
+   --> crates/vpn-daemon/src/transport/server.rs:312:18
+    |
+312 | use aead::{Aead, Key, KeyInit};
+    |                  ^^^
+
+warning: unused import: `anyhow::Result`
+ --> crates/vpn-daemon/src/lib.rs:9:5
+  |
+9 | use anyhow::Result;
+  |     ^^^^^^^^^^^^^^
+
+warning: variable does not need to be mutable
+   --> crates/vpn-daemon/src/transport/server.rs:251:5
+    |
+251 |     mut peers: std::sync::Arc<TokioMutex<peers_t...
+    |     ----^^^^^
+    |     |
+    |     help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> crates/vpn-daemon/src/transport/server.rs:294:9
+    |
+294 |     let mut frame = encode_frame(kind, session_i...
+    |         ----^^^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: irrefutable `if let` pattern
+   --> crates/vpn-daemon/src/transport/server.rs:436:8
+    |
+436 |     if let peer = peers.lock().await {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this pattern will always match, so the `if let` is useless
+    = help: consider replacing the `if let` with a `let`
+    = note: `#[warn(irrefutable_let_patterns)]` on by default
+
+warning: variable does not need to be mutable
+   --> crates/vpn-daemon/src/transport/server.rs:427:5
+    |
+427 |     mut peers: Arc<TokioMutex<peers_table>>,
+    |     ----^^^^^
+    |     |
+    |     help: remove this `mut`
+
+warning: unreachable pattern
+   --> crates/vpn-daemon/src/transport/server.rs:586:21
+    |
+578 |                     Ok(len) => match len{
+    |                     ------- matches all the relevant values
+...
+586 |                     Ok(0) => {
+    |                     ^^^^^ no value can reach this
+    |
+    = note: `#[warn(unreachable_patterns)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `plan`
+   --> crates/vpn-daemon/src/daemon/runtime.rs:109:24
+    |
+109 | ...b async fn start(plan: RuntimePlan) -> anyhow...
+    |                     ^^^^ help: if this is intentional, prefix it with an underscore: `_plan`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `tun_to_transport_tx`
+   --> crates/vpn-daemon/src/daemon/runtime.rs:111:14
+    |
+111 |         let (tun_to_transport_tx, tun_to_transpo...
+    |              ^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_tun_to_transport_tx`
+
+warning: unused variable: `tun_to_transport_rx`
+   --> crates/vpn-daemon/src/daemon/runtime.rs:111:35
+    |
+111 | ...nsport_tx, tun_to_transport_rx) = tokio::sync...
+    |               ^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_tun_to_transport_rx`
+
+warning: unused variable: `c`
+   --> crates/vpn-daemon/src/transport/server.rs:263:54
+    |
+263 | ...ayload).map_err(|c| HelloAckError::InvalidTok...
+    |                     ^ help: if this is intentional, prefix it with an underscore: `_c`
+
+warning: unused variable: `allocator`
+   --> crates/vpn-daemon/src/transport/server.rs:252:5
+    |
+252 |     allocator: &Arc<tokio::sync::Mutex<IpAllocat...
+    |     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_allocator`
+
+warning: unused variable: `allocator`
+   --> crates/vpn-daemon/src/transport/server.rs:428:5
+    |
+428 |     allocator: Arc<tokio::sync::Mutex<IpAllocato...
+    |     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_allocator`
+
+warning: unused variable: `state`
+   --> crates/vpn-daemon/src/transport/server.rs:566:5
+    |
+566 |     state: Arc<std::sync::Mutex<ServerState>>,
+    |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+
+warning: field `errors` is never read
+  --> crates/vpn-daemon/src/daemon/runtime.rs:27:5
+   |
+18 | pub struct RuntimeStatistics {
+   |            ----------------- field in this struct
+...
+27 |     errors: AtomicU64,
+   |     ^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: associated function `new` is never used
+   --> crates/vpn-daemon/src/daemon/runtime.rs:102:8
+    |
+101 | impl RuntimePlan {
+    | ---------------- associated function in this implementation
+102 |     fn new(tun_dec_name: String) -> Self {
+    |        ^^^
+
+warning: field `routes` is never read
+ --> crates/vpn-daemon/src/linux/routing.rs:7:5
+  |
+2 | pub struct ClientNetworkConfig {
+  |            ------------------- field in this struct
+...
+7 |     routes: Vec<RouteConfig>,
+  |     ^^^^^^
+  |
+  = note: `ClientNetworkConfig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `require_root` is never used
+ --> crates/vpn-daemon/src/tests/tun_read.rs:7:4
+  |
+7 | fn require_root() {
+  |    ^^^^^^^^^^^^
+
+warning: function `run_ok` is never used
+  --> crates/vpn-daemon/src/tests/tun_read.rs:15:10
+   |
+15 | async fn run_ok(program: &str, args: &[&str]) -> ...
+   |          ^^^^^^
+
+warning: unused implementer of `Future` that must be used
+   --> crates/vpn-daemon/src/transport/server.rs:268:5
+    |
+268 |     state.connect_peer(peer_adress, user_id);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: futures do nothing unless you `.await` or poll them
+    = note: `#[warn(unused_must_use)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused implementer of `Future` that must be used
+   --> crates/vpn-daemon/src/transport/server.rs:269:5
+    |
+269 |     send_helloack(socket, peer_adress, peers, crypto);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: futures do nothing unless you `.await` or poll them
+
+warning: unused `Result` that must be used
+   --> crates/vpn-daemon/src/transport/server.rs:275:5
+    |
+275 |     getrandom::fill(&mut key);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+275 |     let _ = getrandom::fill(&mut key);
+    |     +++++++
+
+warning: unused `Result` that must be used
+   --> crates/vpn-daemon/src/transport/server.rs:323:5
+    |
+323 |     fill(&mut nonce_bytes);
+    |     ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+323 |     let _ = fill(&mut nonce_bytes);
+    |     +++++++
+
+warning: unused implementer of `Future` that must be used
+   --> crates/vpn-daemon/src/transport/server.rs:529:25
+    |
+529 | ...   guard.write_packet(packet.as_mut_slice());
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: futures do nothing unless you `.await` or poll them
+
+warning: `vpn-daemon` (lib) generated 34 warnings (run `cargo fix --lib -p vpn-daemon` to apply 21 suggestions)
+warning: unused import: `ratatui::style::Color`
+ --> crates/vpn-tui/src/app.rs:2:5
+  |
+2 | use ratatui::style::Color;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `BorderType` and `Padding`
+ --> crates/vpn-tui/src/app.rs:3:24
+  |
+3 | use ratatui::widgets::{BorderType, Padding};
+  |                        ^^^^^^^^^^  ^^^^^^^
+
+warning: unused import: `CoreState`
+ --> crates/vpn-tui/src/app.rs:5:27
+  |
+5 | use vpn_core::{CoreError, CoreState};
+  |                           ^^^^^^^^^
+
+warning: unused imports: `Protocol` and `Transport`
+ --> crates/vpn-tui/src/app.rs:6:17
+  |
+6 | use vpn_types::{Protocol, Security, Transport, Vpn...
+  |                 ^^^^^^^^            ^^^^^^^^^
+
+warning: unused import: `crate::screens::constants`
+ --> crates/vpn-tui/src/app.rs:8:5
+  |
+8 | use crate::screens::constants;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unnecessary parentheses around `if` condition
+   --> crates/vpn-tui/src/app.rs:445:12
+    |
+445 | ...if (self.selected_profile > 0 && self.selected_profile >= self.profiles.len()) {
+    |       ^                                                                         ^
+    |
+    = note: `#[warn(unused_parens)]` (part of `#[warn(unused)]`) on by default
+help: remove these parentheses
+    |
+445 -         if (self.selected_profile > 0 && self.selected_profile >= self.profiles.len()) {
+445 +         if self.selected_profile > 0 && self.selected_profile >= self.profiles.len()  {
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> crates/vpn-tui/src/backend/backend.rs:196:45
+    |
+196 | ... = (Some(profile.tag.clone().unwrap_or_default()));
+    |       ^                                             ^
+    |
+help: remove these parentheses
+    |
+196 -                 self.state.active_profile = (Some(profile.tag.clone().unwrap_or_default()));
+196 +                 self.state.active_profile = Some(profile.tag.clone().unwrap_or_default()) ;
+    |
+
+warning: unused imports: `Ipv4Addr` and `UdpSocket`
+   --> crates/vpn-tui/src/backend/backend.rs:313:16
+    |
+313 | use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
+    |                ^^^^^^^^              ^^^^^^^^^
+
+warning: unused imports: `Block`, `Borders`, `Color`, `Constraint`, `Direction`, `Layout`, `Paragraph`, `Style`, and `Stylize`
+ --> crates/vpn-tui/src/screens/connection.rs:4:14
+  |
+4 |     layout::{Constraint, Direction, Layout, Rect},
+  |              ^^^^^^^^^^  ^^^^^^^^^  ^^^^^^
+5 |     style::{Color, Style, Stylize},
+  |             ^^^^^  ^^^^^  ^^^^^^^
+6 |     widgets::{Block, Borders, Paragraph},
+  |               ^^^^^  ^^^^^^^  ^^^^^^^^^
+
+warning: unused imports: `Modifier` and `Style`
+ --> crates/vpn-tui/src/screens/constants.rs:1:29
+  |
+1 | use ratatui::style::{Color, Modifier, Style};
+  |                             ^^^^^^^^  ^^^^^
+
+warning: unused import: `ratatui::text::Span`
+ --> crates/vpn-tui/src/screens/constants.rs:2:5
+  |
+2 | use ratatui::text::Span;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Color`, `Direction`, `Rect`, `Style`, and `Stylize`
+ --> crates/vpn-tui/src/screens/pdetails.rs:4:26
+  |
+4 |     layout::{Constraint, Direction, Layout, Rect},
+  |                          ^^^^^^^^^          ^^^^
+5 |     style::{Color, Style, Stylize},
+  |             ^^^^^  ^^^^^  ^^^^^^^
+
+warning: unused imports: `BorderType` and `Padding`
+ --> crates/vpn-tui/src/ui.rs:9:22
+  |
+9 | ...lock, BorderType, Borders, Clear, Padding, Para...
+  |          ^^^^^^^^^^                  ^^^^^^^
+
+warning: unused variable: `error`
+  --> crates/vpn-tui/src/app.rs:76:26
+   |
+76 |             Popup::Error(error) => "Error",
+   |                          ^^^^^ help: if this is intentional, prefix it with an underscore: `_error`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `profile`
+  --> crates/vpn-tui/src/app.rs:77:31
+   |
+77 | ...up::PreviewAdd(profile) => "ConfirmAdd",
+   |                   ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_profile`
+
+warning: unused variable: `tx_to_tun`
+   --> crates/vpn-tui/src/backend/backend.rs:187:22
+    |
+187 | ...          let (tx_to_tun, rx_from_tun): (mpsc...
+    |                   ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_tx_to_tun`
+
+warning: unused variable: `rx_from_tun`
+   --> crates/vpn-tui/src/backend/backend.rs:187:33
+    |
+187 | ... (tx_to_tun, rx_from_tun): (mpsc::Sender<Vec<...
+    |                 ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_rx_from_tun`
+
+warning: unused variable: `index`
+   --> crates/vpn-tui/src/backend/backend.rs:273:38
+    |
+273 |             UiCommand::RemoveProfile(index) => {}
+    |                                      ^^^^^ help: if this is intentional, prefix it with an underscore: `_index`
+
+warning: unused variable: `metrics_tx`
+   --> crates/vpn-tui/src/backend/backend.rs:152:14
+    |
+152 |         let (metrics_tx, metrix_rx) = watch::cha...
+    |              ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_metrics_tx`
+
+warning: unused variable: `metrics`
+   --> crates/vpn-tui/src/backend/backend.rs:329:5
+    |
+329 |     metrics: std::sync::Arc<TrafficCounters>,
+    |     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_metrics`
+
+warning: unused variable: `event_tx`
+   --> crates/vpn-tui/src/backend/backend.rs:330:5
+    |
+330 |     event_tx: broadcast::Sender<BackendEvent>,
+    |     ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_event_tx`
+
+warning: variable does not need to be mutable
+   --> crates/vpn-tui/src/backend/backend.rs:447:21
+    |
+447 | ...   let mut guard = tun_reader.lock().await;
+    |           ----^^^^^
+    |           |
+    |           help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> crates/vpn-tui/src/backend/backend.rs:467:21
+    |
+467 | ...   let mut guard = tun_writer.lock().await;
+    |           ----^^^^^
+    |           |
+    |           help: remove this `mut`
+
+warning: unused variable: `frame`
+ --> crates/vpn-tui/src/screens/connection.rs:9:11
+  |
+9 | fn render(frame: Frame, app: &App, area: Rect) {}
+  |           ^^^^^ help: if this is intentional, prefix it with an underscore: `_frame`
+
+warning: unused variable: `app`
+ --> crates/vpn-tui/src/screens/connection.rs:9:25
+  |
+9 | fn render(frame: Frame, app: &App, area: Rect) {}
+  |                         ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+
+warning: unused variable: `area`
+ --> crates/vpn-tui/src/screens/connection.rs:9:36
+  |
+9 | fn render(frame: Frame, app: &App, area: Rect) {}
+  |                                    ^^^^ help: if this is intentional, prefix it with an underscore: `_area`
+
+warning: unused variable: `header`
+  --> crates/vpn-tui/src/screens/pdetails.rs:10:10
+   |
+10 |     let [header, body, description] = Layout::ver...
+   |          ^^^^^^ help: if this is intentional, prefix it with an underscore: `_header`
+
+warning: unused variable: `description`
+  --> crates/vpn-tui/src/screens/pdetails.rs:10:24
+   |
+10 | ...eader, body, description] = Layout::vertical([
+   |                 ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_description`
+
+warning: unused variable: `app`
+   --> crates/vpn-tui/src/ui.rs:315:37
+    |
+315 | ...ame: &mut Frame, app: &App, area: ratatui::la...
+    |                     ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+
+warning: unused variable: `backend`
+   --> crates/vpn-tui/src/ui.rs:331:5
+    |
+331 |     backend: &tokio::sync::watch::Ref<'_, Backen...
+    |     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_backend`
+
+warning: unused variable: `final_output`
+   --> crates/vpn-tui/src/ui.rs:352:9
+    |
+352 |     let final_output =
+    |         ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_final_output`
+
+warning: unused variable: `app`
+   --> crates/vpn-tui/src/ui.rs:367:5
+    |
+367 |     app: &App,
+    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+
+warning: unused variable: `app`
+   --> crates/vpn-tui/src/ui.rs:405:41
+    |
+405 | ...ame: &mut Frame, app: &App, area: ratatui::la...
+    |                     ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+
+warning: unused variable: `app`
+   --> crates/vpn-tui/src/ui.rs:421:47
+    |
+421 | ...ame: &mut Frame, app: &App, area: ratatui::la...
+    |                     ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+
+warning: unused variable: `frame`
+   --> crates/vpn-tui/src/ui.rs:469:25
+    |
+469 | ..._popup_overlay(frame: &mut Frame, app: &App, ...
+    |                   ^^^^^ help: if this is intentional, prefix it with an underscore: `_frame`
+
+warning: unused variable: `app`
+   --> crates/vpn-tui/src/ui.rs:469:44
+    |
+469 | ...ame: &mut Frame, app: &App, area: ratatui::la...
+    |                     ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+
+warning: unused variable: `area`
+   --> crates/vpn-tui/src/ui.rs:469:55
+    |
+469 | ...rame, app: &App, area: ratatui::layout::Rect) {}
+    |                     ^^^^ help: if this is intentional, prefix it with an underscore: `_area`
+
+warning: variable does not need to be mutable
+   --> crates/vpn-tui/src/ui.rs:471:9
+    |
+471 |     let mut popup_area = centered_popup(area, 50...
+    |         ----^^^^^^^^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: unused variable: `app`
+   --> crates/vpn-tui/src/ui.rs:470:42
+    |
+470 | ...ame: &mut Frame, app: &App, area: Rect, messa...
+    |                     ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+
+warning: function `render` is never used
+ --> crates/vpn-tui/src/screens/connection.rs:9:4
+  |
+9 | fn render(frame: Frame, app: &App, area: Rect) {}
+  |    ^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: enum `Hotkeys` is never used
+  --> crates/vpn-tui/src/ui.rs:37:6
+   |
+37 | enum Hotkeys {
+   |      ^^^^^^^
+
+warning: associated function `as_str` is never used
+  --> crates/vpn-tui/src/ui.rs:47:8
+   |
+46 | impl Hotkeys {
+   | ------------ associated function in this implementation
+47 |     fn as_str(hotkey: Hotkeys) -> String {
+   |        ^^^^^^
+
+warning: function `render_footer` is never used
+   --> crates/vpn-tui/src/ui.rs:315:4
+    |
+315 | fn render_footer(frame: &mut Frame, app: &App, a...
+    |    ^^^^^^^^^^^^^
+
+warning: function `render_status_bar_old` is never used
+   --> crates/vpn-tui/src/ui.rs:328:4
+    |
+328 | fn render_status_bar_old(
+    |    ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `render_popup_overlay` is never used
+   --> crates/vpn-tui/src/ui.rs:469:4
+    |
+469 | fn render_popup_overlay(frame: &mut Frame, app: ...
+    |    ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused `Result` that must be used
+   --> crates/vpn-tui/src/backend/backend.rs:108:9
+    |
+108 |         self.cmd_tx.try_send(cmd);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `#[warn(unused_must_use)]` (part of `#[warn(unused)]`) on by default
+help: use `let _ = ...` to ignore the resulting value
+    |
+108 |         let _ = self.cmd_tx.try_send(cmd);
+    |         +++++++
+
+warning: variable `Groups` should have a snake case name
+  --> crates/vpn-tui/src/screens/pdetails.rs:23:9
+   |
+23 |     let Groups = vec![
+   |         ^^^^^^ help: convert the identifier to snake case: `groups`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: `vpn-tui` (lib) generated 47 warnings (run `cargo fix --lib -p vpn-tui` to apply 39 suggestions)
+warning: unused import: `self`
+ --> crates/vpn-tui/src/main.rs:2:24
+  |
+2 | use crossterm::event::{self, Event, KeyCode, KeyEv...
+  |                        ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `Frame`, `layout::Layout`, `widgets::Block`, `widgets::BorderType`, `widgets::Borders`, and `widgets::Paragraph`
+ --> crates/vpn-tui/src/main.rs:5:5
+  |
+5 |     Frame, layout::Layout, widgets::Block, widgets::BorderType, widgets::Borders,
+  |     ^^^^^  ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+6 |     widgets::Paragraph,
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `tokio_util::sync::CancellationToken`
+ --> crates/vpn-tui/src/main.rs:9:5
+  |
+9 | use tokio_util::sync::CancellationToken;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Protocol`, `Security`, and `VpnProfile`
+  --> crates/vpn-tui/src/main.rs:10:17
+   |
+10 | use vpn_types::{Protocol, Security, VpnProfile};
+   |                 ^^^^^^^^  ^^^^^^^^  ^^^^^^^^^^
+
+warning: unused import: `ratatui::style::Color`
+ --> crates/vpn-tui/src/app.rs:2:5
+  |
+2 | use ratatui::style::Color;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `home`, `parser`, `pdetails`, and `profiles`
+  --> crates/vpn-tui/src/main.rs:17:15
+   |
+17 | use screens::{home, parser, pdetails, profiles};
+   |               ^^^^  ^^^^^^  ^^^^^^^^  ^^^^^^^^
+
+warning: unused imports: `daemon::runtime`, `linux::routing`, `transport::client`, `transport::frame`, and `transport::packet`
+  --> crates/vpn-tui/src/main.rs:19:5
+   |
+19 |     daemon::runtime, linux::routing, linux::tun, transport::client, transport::frame,
+   |     ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^              ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+20 |     transport::packet, transport::server,
+   |     ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `vpn_daemon::transport::frame::CryptoState`
+   --> crates/vpn-tui/src/main.rs:468:5
+    |
+468 | use vpn_daemon::transport::frame::CryptoState;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `decrypt_frame`
+   --> crates/vpn-tui/src/main.rs:470:37
+    |
+470 | ...sport::server::{decrypt_frame, encrypt_frame};
+    |                    ^^^^^^^^^^^^^
+
+warning: unused import: `color_eyre::eyre::Context`
+   --> crates/vpn-tui/src/main.rs:636:5
+    |
+636 | use color_eyre::eyre::Context;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `tracing::error`
+   --> crates/vpn-tui/src/main.rs:640:5
+    |
+640 | use tracing::error;
+    |     ^^^^^^^^^^^^^^
+
+warning: variable does not need to be mutable
+   --> crates/vpn-tui/src/main.rs:482:9
+    |
+482 |     let mut tun_to_udpp_rx = tun_to_udp_rx;
+    |         ----^^^^^^^^^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> crates/vpn-tui/src/backend/backend.rs:447:21
+    |
+447 | ...   let mut guard = tun_reader.lock().await;
+    |           ----^^^^^
+    |           |
+    |           help: remove this `mut`
+
+warning: unused variable: `state_rx`
+  --> crates/vpn-tui/src/main.rs:54:5
+   |
+54 |     state_rx: &watch::Receiver<VpnState>,
+   |     ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_state_rx`
+
+warning: unused variable: `cmd_tx`
+  --> crates/vpn-tui/src/main.rs:55:5
+   |
+55 |     cmd_tx: &mpsc::Sender<UiCommand>,
+   |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_cmd_tx`
+
+warning: unused variable: `state_rx`
+   --> crates/vpn-tui/src/main.rs:167:5
+    |
+167 |     state_rx: &watch::Receiver<VpnState>,
+    |     ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_state_rx`
+
+warning: unused variable: `cmd_tx`
+   --> crates/vpn-tui/src/main.rs:168:5
+    |
+168 |     cmd_tx: &mpsc::Sender<UiCommand>,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_cmd_tx`
+
+warning: unused variable: `profile`
+   --> crates/vpn-tui/src/main.rs:257:27
+    |
+257 |         Popup::PreviewAdd(profile) => match event {
+    |                           ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_profile`
+
+warning: unused variable: `server_state`
+   --> crates/vpn-tui/src/main.rs:457:9
+    |
+457 |     let server_state = std::sync::Arc::new(serve...
+    |         ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_server_state`
+
+warning: unused variable: `tun_to_udp_tx`
+   --> crates/vpn-tui/src/main.rs:480:10
+    |
+480 |     let (tun_to_udp_tx, tun_to_udp_rx) = mpsc::c...
+    |          ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_tun_to_udp_tx`
+
+warning: unused variable: `tun_to_udpp_rx`
+   --> crates/vpn-tui/src/main.rs:482:9
+    |
+482 |     let mut tun_to_udpp_rx = tun_to_udp_rx;
+    |         ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_tun_to_udpp_rx`
+
+warning: unused variable: `tun_r`
+   --> crates/vpn-tui/src/main.rs:483:9
+    |
+483 |     let tun_r = tun.clone();
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_tun_r`
+
+warning: unused variable: `tun_rr`
+   --> crates/vpn-tui/src/main.rs:484:9
+    |
+484 |     let tun_rr = tun.clone();
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_tun_rr`
+
+warning: unused variable: `tun_w`
+   --> crates/vpn-tui/src/main.rs:485:9
+    |
+485 |     let tun_w = tun.clone();
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_tun_w`
+
+warning: function `handle_normal_event` is never used
+  --> crates/vpn-tui/src/main.rs:51:4
+   |
+51 | fn handle_normal_event(
+   |    ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `handle_input_event` is never used
+  --> crates/vpn-tui/src/main.rs:85:4
+   |
+85 | fn handle_input_event(app: &mut app::App, event: ...
+   |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `handle_details_event` is never used
+   --> crates/vpn-tui/src/main.rs:147:4
+    |
+147 | fn handle_details_event(app: &mut app::App, even...
+    |    ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `handle_popup_event` is never used
+   --> crates/vpn-tui/src/main.rs:164:4
+    |
+164 | fn handle_popup_event(
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `init_logging` is never used
+   --> crates/vpn-tui/src/main.rs:569:4
+    |
+569 | fn init_logging() {
+    |    ^^^^^^^^^^^^
+
+warning: struct `Profile` is never constructed
+  --> crates/vpn-tui/src/app.rs:11:12
+   |
+11 | pub struct Profile {
+   |            ^^^^^^^
+
+warning: enum `Source` is never used
+   --> crates/vpn-tui/src/app.rs:151:10
+    |
+151 | pub enum Source {
+    |          ^^^^^^
+
+warning: field `tun_name` is never read
+  --> crates/vpn-tui/src/backend/backend.rs:91:9
+   |
+88 | pub struct BackendConfig {
+   |            ------------- field in this struct
+...
+91 |     pub tun_name: String,
+   |         ^^^^^^^^
+
+warning: field `server_addr` is never read
+   --> crates/vpn-tui/src/backend/backend.rs:321:9
+    |
+316 | pub struct ClientContext {
+    |            ------------- field in this struct
+...
+321 |     pub server_addr: std::net::SocketAddr,
+    |         ^^^^^^^^^^^
+
+warning: function `render` is never used
+ --> crates/vpn-tui/src/screens/connection.rs:9:4
+  |
+9 | fn render(frame: Frame, app: &App, area: Rect) {}
+  |    ^^^^^^
+
+warning: function `render_deprecated` is never used
+  --> crates/vpn-tui/src/ui.rs:65:8
+   |
+65 | pub fn render_deprecated(
+   |        ^^^^^^^^^^^^^^^^^
+
+warning: function `render_simple_popup` is never used
+   --> crates/vpn-tui/src/ui.rs:209:8
+    |
+209 | pub fn render_simple_popup(frame: &mut Frame, ar...
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `render_confirm_popup` is never used
+   --> crates/vpn-tui/src/ui.rs:229:8
+    |
+229 | pub fn render_confirm_popup(
+    |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: `vpn-tui` (bin "vpn-tui") generated 81 warnings (44 duplicates) (run `cargo fix --bin "vpn-tui" -p vpn-tui` to apply 24 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.19s
+     Running `/home/voice01/projects/vpn-project/target/debug/vpn-tui`

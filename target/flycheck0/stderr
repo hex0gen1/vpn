@@ -1,112 +1,26 @@
     Blocking waiting for file lock on package cache
     Blocking waiting for file lock on package cache
 warning: vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) ignoring invalid dependency `lic` which is missing a lib target
+    Blocking waiting for file lock on package cache
     Blocking waiting for file lock on build directory
-   0.833874462s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint: stale: changed "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/transport/server.rs"
-   0.833889943s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:           (vs) "/home/voice01/projects/vpn-project/target/debug/.fingerprint/vpn-daemon-f52b7769a45dd464/dep-lib-vpn_daemon"
-   0.833895447s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:                FileTime { seconds: 1777126153, nanos: 686811748 } < FileTime { seconds: 1777128706, nanos: 139942843 }
-   0.834090194s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("vpn_daemon", ["lib"], "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/lib.rs", Edition2024) }
-   0.834108201s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleItem(ChangedFile { reference: "/home/voice01/projects/vpn-project/target/debug/.fingerprint/vpn-daemon-f52b7769a45dd464/dep-lib-vpn_daemon", reference_mtime: FileTime { seconds: 1777126153, nanos: 686811748 }, stale: "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/transport/server.rs", stale_mtime: FileTime { seconds: 1777128706, nanos: 139942843 } }))
-   0.843113690s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint: stale: changed "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/transport/server.rs"
-   0.843124843s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:           (vs) "/home/voice01/projects/vpn-project/target/debug/.fingerprint/vpn-daemon-471bc2c8523d0730/dep-test-lib-vpn_daemon"
-   0.843129943s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:                FileTime { seconds: 1777126153, nanos: 690811923 } < FileTime { seconds: 1777128706, nanos: 139942843 }
-   0.843185913s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("vpn_daemon", ["lib"], "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/lib.rs", Edition2024) }
-   0.843202430s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleItem(ChangedFile { reference: "/home/voice01/projects/vpn-project/target/debug/.fingerprint/vpn-daemon-471bc2c8523d0730/dep-test-lib-vpn_daemon", reference_mtime: FileTime { seconds: 1777126153, nanos: 690811923 }, stale: "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/transport/server.rs", stale_mtime: FileTime { seconds: 1777128706, nanos: 139942843 } }))
-   0.844258603s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn-daemon"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon)/Check { test: false }/TargetInner { name: "vpn-daemon", doc: true, ..: with_path("/home/voice01/projects/vpn-project/crates/vpn-daemon/src/main.rs", Edition2024) }
-   0.844274228s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn-daemon"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleDepFingerprint { unit: UnitIndex(307) })
-   0.845219052s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn-daemon"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon)/Check { test: true }/TargetInner { name: "vpn-daemon", doc: true, ..: with_path("/home/voice01/projects/vpn-project/crates/vpn-daemon/src/main.rs", Edition2024) }
-   0.845233868s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn-daemon"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleDepFingerprint { unit: UnitIndex(307) })
-   0.849004330s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn_tui"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("vpn_tui", ["lib"], "/home/voice01/projects/vpn-project/crates/vpn-tui/src/lib.rs", Edition2024) }
-   0.849028747s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn_tui"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleDepFingerprint { unit: UnitIndex(307) })
-   0.854471957s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn_tui"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("vpn_tui", ["lib"], "/home/voice01/projects/vpn-project/crates/vpn-tui/src/lib.rs", Edition2024) }
-   0.854509858s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn_tui"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleDepFingerprint { unit: UnitIndex(307) })
-   0.856248026s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn-tui"}: cargo::core::compiler::fingerprint: fingerprint error for vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui)/Check { test: false }/TargetInner { name: "vpn-tui", doc: true, ..: with_path("/home/voice01/projects/vpn-project/crates/vpn-tui/src/main.rs", Edition2024) }
-   0.856275230s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn-tui"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/voice01/projects/vpn-project/target/debug/.fingerprint/vpn-tui-850546ed86f5a49a/bin-vpn-tui`
-
-Caused by:
-    No such file or directory (os error 2)
-
-Stack backtrace:
-   0: cargo_util::paths::read_bytes
-   1: cargo_util::paths::read
-   2: cargo::core::compiler::fingerprint::_compare_old_fingerprint
-   3: cargo::core::compiler::fingerprint::prepare_target
-   4: cargo::core::compiler::compile
-   5: <cargo::core::compiler::build_runner::BuildRunner>::compile
-   6: cargo::ops::cargo_compile::compile_ws
-   7: cargo::ops::cargo_compile::compile_with_exec
-   8: cargo::ops::cargo_compile::compile
-   9: cargo::commands::check::exec
-  10: <cargo::cli::Exec>::exec
-  11: cargo::main
-  12: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
-  13: std::rt::lang_start::<()>::{closure#0}
-  14: <&dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe as core::ops::function::FnOnce<()>>::call_once
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/core/src/ops/function.rs:287:21
-  15: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe, i32>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:581:40
-  16: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:544:19
-  17: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe, i32>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panic.rs:359:14
-  18: std::rt::lang_start_internal::{closure#0}
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/rt.rs:175:24
-  19: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:581:40
-  20: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:544:19
-  21: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panic.rs:359:14
-  22: std::rt::lang_start_internal
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/rt.rs:171:5
-  23: main
-  24: <unknown>
-  25: __libc_start_main
-  26: <unknown>
-   0.866304171s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn-tui"}: cargo::core::compiler::fingerprint: fingerprint error for vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui)/Check { test: true }/TargetInner { name: "vpn-tui", doc: true, ..: with_path("/home/voice01/projects/vpn-project/crates/vpn-tui/src/main.rs", Edition2024) }
-   0.866323615s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn-tui"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/voice01/projects/vpn-project/target/debug/.fingerprint/vpn-tui-b2d4d7e329d8d37e/test-bin-vpn-tui`
-
-Caused by:
-    No such file or directory (os error 2)
-
-Stack backtrace:
-   0: cargo_util::paths::read_bytes
-   1: cargo_util::paths::read
-   2: cargo::core::compiler::fingerprint::_compare_old_fingerprint
-   3: cargo::core::compiler::fingerprint::prepare_target
-   4: cargo::core::compiler::compile
-   5: <cargo::core::compiler::build_runner::BuildRunner>::compile
-   6: cargo::ops::cargo_compile::compile_ws
-   7: cargo::ops::cargo_compile::compile_with_exec
-   8: cargo::ops::cargo_compile::compile
-   9: cargo::commands::check::exec
-  10: <cargo::cli::Exec>::exec
-  11: cargo::main
-  12: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
-  13: std::rt::lang_start::<()>::{closure#0}
-  14: <&dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe as core::ops::function::FnOnce<()>>::call_once
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/core/src/ops/function.rs:287:21
-  15: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe, i32>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:581:40
-  16: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:544:19
-  17: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::marker::Sync + core::panic::unwind_safe::RefUnwindSafe, i32>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panic.rs:359:14
-  18: std::rt::lang_start_internal::{closure#0}
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/rt.rs:175:24
-  19: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:581:40
-  20: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panicking.rs:544:19
-  21: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/panic.rs:359:14
-  22: std::rt::lang_start_internal
-             at /rustc/59807616e1fa2540724bfbac14d7976d7e4a3860/library/std/src/rt.rs:171:5
-  23: main
-  24: <unknown>
-  25: __libc_start_main
-  26: <unknown>
+   1.404558165s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint: stale: changed "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/transport/server.rs"
+   1.404578634s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:           (vs) "/home/voice01/projects/vpn-project/target/debug/.fingerprint/vpn-daemon-55f5ea5a720f7d99/dep-lib-vpn_daemon"
+   1.404583542s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:                FileTime { seconds: 1777691679, nanos: 14088694 } < FileTime { seconds: 1777691691, nanos: 922961598 }
+   1.404806345s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("vpn_daemon", ["lib"], "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/lib.rs", Edition2024) }
+   1.404827604s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleItem(ChangedFile { reference: "/home/voice01/projects/vpn-project/target/debug/.fingerprint/vpn-daemon-55f5ea5a720f7d99/dep-lib-vpn_daemon", reference_mtime: FileTime { seconds: 1777691679, nanos: 14088694 }, stale: "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/transport/server.rs", stale_mtime: FileTime { seconds: 1777691691, nanos: 922961598 } }))
+   1.416215937s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint: stale: changed "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/transport/server.rs"
+   1.416240218s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:           (vs) "/home/voice01/projects/vpn-project/target/debug/.fingerprint/vpn-daemon-544e7008ffce857e/dep-test-lib-vpn_daemon"
+   1.416245383s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:                FileTime { seconds: 1777691679, nanos: 14088694 } < FileTime { seconds: 1777691691, nanos: 922961598 }
+   1.416310385s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("vpn_daemon", ["lib"], "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/lib.rs", Edition2024) }
+   1.416326810s  INFO prepare_target{force=false package_id=vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon) target="vpn_daemon"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleItem(ChangedFile { reference: "/home/voice01/projects/vpn-project/target/debug/.fingerprint/vpn-daemon-544e7008ffce857e/dep-test-lib-vpn_daemon", reference_mtime: FileTime { seconds: 1777691679, nanos: 14088694 }, stale: "/home/voice01/projects/vpn-project/crates/vpn-daemon/src/transport/server.rs", stale_mtime: FileTime { seconds: 1777691691, nanos: 922961598 } }))
+   1.418786965s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn_tui"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("vpn_tui", ["lib"], "/home/voice01/projects/vpn-project/crates/vpn-tui/src/lib.rs", Edition2024) }
+   1.418815457s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn_tui"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleDepFingerprint { unit: UnitIndex(297) })
+   1.423814139s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn_tui"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("vpn_tui", ["lib"], "/home/voice01/projects/vpn-project/crates/vpn-tui/src/lib.rs", Edition2024) }
+   1.423836719s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn_tui"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleDepFingerprint { unit: UnitIndex(297) })
+   1.425211682s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn-tui"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui)/Check { test: false }/TargetInner { name: "vpn-tui", doc: true, ..: with_path("/home/voice01/projects/vpn-project/crates/vpn-tui/src/main.rs", Edition2024) }
+   1.425230617s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn-tui"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleDepFingerprint { unit: UnitIndex(297) })
+   1.426618471s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn-tui"}: cargo::core::compiler::fingerprint: fingerprint dirty for vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui)/Check { test: true }/TargetInner { name: "vpn-tui", doc: true, ..: with_path("/home/voice01/projects/vpn-project/crates/vpn-tui/src/main.rs", Edition2024) }
+   1.426639386s  INFO prepare_target{force=false package_id=vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui) target="vpn-tui"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleDepFingerprint { unit: UnitIndex(297) })
     Checking vpn-daemon v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-daemon)
-error: could not compile `vpn-daemon` (lib) due to 3 previous errors; 27 warnings emitted
-warning: build failed, waiting for other jobs to finish...
-o 3 previous errors; 19 warnings emitted
+    Checking vpn-tui v0.1.0 (/home/voice01/projects/vpn-project/crates/vpn-tui)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.92s

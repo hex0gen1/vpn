@@ -1,6 +1,6 @@
-use ratatui::style::Color;
+use ratatui::style::{Color, Modifier, Style};
+use ratatui::text::Span;
 use ratatui::widgets::{BorderType, Padding};
-
 pub const PADDING: Padding = Padding::uniform(1);
 pub const BORDER_STYLE: BorderType = BorderType::Rounded;
 pub const COLOR_SUCCESS: Color = Color::Green;

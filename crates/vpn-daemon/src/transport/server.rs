@@ -22,7 +22,7 @@ pub async fn bind_token(profile: VpnProfile) -> Token {
     token.fill_token_vless(&profile);
     token
 }
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Peer {
     pub user_ip: Ipv4Addr,
     pub public_socket: std::net::SocketAddr,
@@ -50,6 +50,7 @@ impl Peer {
         }
     }
 }
+#[derive(Debug)]
 pub struct IpAllocator {
     pub base: u32,
     pub next: u32,
@@ -94,7 +95,50 @@ impl IpAllocator {
         (self.max - 1) as usize - self.used.len()
     }
 }
+use std::sync::atomic::{AtomicU64, Ordering};
 use tokio::sync::Mutex as TokioMutex;
+
+#[derive(Debug, Default)]
+pub struct TrafficCounters {
+    pub bytes_rx: AtomicU64,
+    pub bytes_tx: AtomicU64,
+    pub packets_rx: AtomicU64,
+    pub packets_tx: AtomicU64,
+}
+#[derive(Clone, Debug, Default)]
+pub struct TrafficSnapshot {
+    pub bytes_rx: u64,
+    pub bytes_tx: u64,
+    pub packets_rx: u64,
+    pub packets_tx: u64,
+}
+impl TrafficCounters {
+    pub fn new() -> Self {
+        Self {
+            bytes_tx: AtomicU64::new(0),
+            bytes_rx: AtomicU64::new(0),
+            packets_rx: AtomicU64::new(0),
+            packets_tx: AtomicU64::new(0),
+        }
+    }
+    pub fn add_rx(&self, len: u64) {
+        self.bytes_rx.fetch_add(len, Ordering::Relaxed);
+        self.packets_rx.fetch_add(1, Ordering::Relaxed);
+    }
+    pub fn add_tx(&self, len: u64) {
+        self.bytes_tx.fetch_add(len, Ordering::Relaxed);
+        self.packets_tx.fetch_add(1, Ordering::Relaxed);
+    }
+    pub fn snapshot(&self) -> TrafficSnapshot {
+        TrafficSnapshot {
+            bytes_rx: self.bytes_rx.load(Ordering::Relaxed),
+            bytes_tx: self.bytes_tx.load(Ordering::Relaxed),
+            packets_rx: self.packets_rx.load(Ordering::Relaxed),
+            packets_tx: self.packets_tx.load(Ordering::Relaxed),
+        }
+    }
+}
+#[derive(Debug)]
 pub struct ServerState {
     pub allocator: TokioMutex<IpAllocator>,
     pub peers: TokioMutex<peers_table>,
@@ -146,7 +190,11 @@ impl ServerState {
             peers: tokio::sync::Mutex::new(peers_table::new()),
         }
     }
+    pub async fn peer_count(&self) -> usize {
+        self.peers.lock().await.by_user_ip.len()
+    }
 }
+#[derive(Debug)]
 pub struct peers_table {
     pub by_user_ip: std::collections::HashMap<std::net::Ipv4Addr, Arc<Peer>>,
     pub by_user_public_socket: std::collections::HashMap<std::net::SocketAddr, Arc<Peer>>,
@@ -203,6 +251,7 @@ pub async fn handle_hello(
     mut peers: std::sync::Arc<TokioMutex<peers_table>>,
     allocator: &Arc<tokio::sync::Mutex<IpAllocator>>,
     state: &Arc<ServerState>,
+    crypto: Arc<CryptoState>,
 ) -> Result<(), HelloAckError> {
     let mut buf = vec![0u8; 2048];
     let (res, peer_adress) = socket.recv_from(&mut buf).await?;
@@ -217,7 +266,7 @@ pub async fn handle_hello(
     }
     let user_id = payload_token.to_string();
     state.connect_peer(peer_adress, user_id);
-    send_helloack(socket, peer_adress, peers);
+    send_helloack(socket, peer_adress, peers, crypto);
     Ok(())
 }
 
@@ -227,7 +276,7 @@ pub fn generate_crypto_state() -> std::io::Result<Arc<CryptoState>> {
 
     Ok(Arc::new(CryptoState {
         key: key,
-        tx_nonce: std::sync::atomic::AtomicU64::new(0),
+        tx_nonce: std::sync::atomic::AtomicU64::new(1),
         rx_last_nonce: Arc::new(Mutex::new(0 as u64)),
         cipher_type: crate::transport::frame::CipherAlg::AesGcm,
     }))
@@ -236,13 +285,15 @@ pub async fn send_helloack(
     socket: &UdpSocket,
     peer_addr: std::net::SocketAddr,
     peers: Arc<TokioMutex<peers_table>>,
+    crypto: Arc<CryptoState>,
 ) -> std::io::Result<()> {
     let kind = FrameKind::HELLOACK;
     let peer = peers.lock().await.get_by_addr(&peer_addr).unwrap();
     let session_id = peer.session_id;
     let mut payload = vec![];
     let mut frame = encode_frame(kind, session_id, &mut payload);
-    socket.send_to(&mut frame, peer_addr).await?;
+    let encrypted = encrypt_frame(&frame, crypto.clone()).await.unwrap();
+    socket.send_to(&encrypted, peer_addr).await?;
     Ok(())
 }
 //pub async fn handle_data(socket: &UdpSocket, session: &mut Session) -> Result<(), anyhow::Error> {
@@ -305,7 +356,9 @@ pub fn decrypt_frame_deprecated(
 
     Ok(cipher.decrypt(nonce, payload)?)
 }
+
 const NONCE_LEN: usize = 12;
+//CRYPTO FUNCTIONS
 
 pub fn encrypt_frame_sync(
     plaintext: &[u8],
@@ -364,6 +417,7 @@ pub async fn decrypt_frame(
     let data = ciphertext.to_vec();
     tokio::task::spawn_blocking(move || decrypt_frame_sync(&data, &state)).await?
 }
+
 use crate::transport::frame::CryptoState;
 pub async fn handle_data_loop(
     socket: UdpSocket,
@@ -375,6 +429,7 @@ pub async fn handle_data_loop(
     cancel: tokio_util::sync::CancellationToken,
     crypto: Arc<CryptoState>,
     state: Arc<std::sync::Mutex<ServerState>>,
+    traffic: Arc<TrafficCounters>,
 ) {
     let mut raw_buf = vec![0u8; 2048];
     let idle_timeout = std::time::Duration::from_secs(120);
@@ -404,7 +459,10 @@ pub async fn handle_data_loop(
                 if src != peer_addr { continue; }
 
                 let frame_bytes = match decrypt_frame(&raw_buf[..len], crypto.clone()).await{
-                    Ok(v) => v,
+                    Ok(v) => {
+                        traffic.add_rx(v.len() as u64);
+                        v
+                    }
                     Err(_) => continue               };
 
                 let frame = match decode_frame(&frame_bytes){
@@ -414,7 +472,6 @@ pub async fn handle_data_loop(
                         continue;
                     }
                 };
-
                 if frame.kind != FrameKind::DATA {
                     continue;
                 }
@@ -506,6 +563,8 @@ pub async fn tun_reader_loop(
     peers: Arc<TokioMutex<peers_table>>,
     socket: tokio::net::UdpSocket,
     cancel: tokio_util::sync::CancellationToken,
+    state: Arc<std::sync::Mutex<ServerState>>,
+    traffic: Arc<TrafficCounters>,
 ) {
     let mut buf = vec![0u8; 1500];
     info!("TUN reader started");
@@ -519,8 +578,11 @@ pub async fn tun_reader_loop(
                     Ok(len) => match len{
                         0 => {
                             tracing::warn!("Tun device returned EOF(interface is closed"); break;}
-                        n => n,
-                    },
+                        n => {
+                            tracing::debug!("Tun read {} bytes, first byte: {}", len, buf[0]);
+                            n
+                        }
+                    }
                     Ok(0) => {
                         tracing::warn!("TUN EOF (interface closed)");
                         break;
@@ -547,7 +609,10 @@ pub async fn tun_reader_loop(
 
                 let frame = encode_frame(FrameKind::DATA, peer.session_id, raw_ip);
                 let encrypted = match encrypt_frame(&frame, peer_crypto).await {
-                    Ok(e) => e,
+                    Ok(e) => {
+                        traffic.add_tx(e.len() as u64);
+                        e
+                    }
                     Err(_) => continue,
                 };
 

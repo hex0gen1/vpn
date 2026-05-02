@@ -36,8 +36,9 @@ impl Screen {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ConnectionState {
+    #[default]
     Disconnected,
     Connecting,
     Connected,
@@ -93,6 +94,22 @@ pub struct App {
     pub detail_groups: Vec<DetailGroup>,
     pub details_on: bool,
     pub cursor_pos: usize,
+    pub peer_count: usize,
+    pub last_error: Option<String>,
+    pub active_profile: Option<String>,
+    //pub backend: crate::backend::backend::Backend,
+    //pub backend_handle: crate::backend::backend::BackendHandle,
+    pub rx_bytes: u64,
+    pub tx_bytes: u64,
+    pub rx_packets: u64,
+    pub tx_packets: u64,
+    pub rx_bps: u64,
+    pub tx_bps: u64,
+    pub prev_rx_bytes: u64,
+    pub prev_tx_bytes: u64,
+    pub last_metrics_tick: Option<std::time::Instant>,
+    pub rx_history: std::collections::VecDeque<u64>,
+    pub tx_history: std::collections::VecDeque<u64>,
 }
 #[derive(Debug)]
 pub enum Mode {
@@ -244,6 +261,20 @@ impl App {
             current_detail: 0,
             details_on: false,
             cursor_pos: 0,
+            last_error: Some(String::new()),
+            active_profile: Some(String::new()),
+            peer_count: 0,
+            rx_history: std::collections::VecDeque::with_capacity(60),
+            tx_history: std::collections::VecDeque::with_capacity(60),
+            prev_rx_bytes: 0,
+            prev_tx_bytes: 0,
+            last_metrics_tick: None,
+            rx_bps: 0,
+            tx_bps: 0,
+            rx_bytes: 0,
+            tx_bytes: 0,
+            rx_packets: 0,
+            tx_packets: 0,
         }
     }
     pub fn build_general_group(profile: &VpnProfile) -> DetailGroup {
@@ -423,4 +454,82 @@ impl App {
     pub fn quit(&mut self) {
         self.should_quit = true;
     }
+    pub fn apply_backend_state(&mut self, state: crate::backend::backend::BackendState) {
+        if self.connection_state != state.connections {
+            self.connection_state = state.connections;
+        }
+        self.active_profile = state.active_profile;
+        self.peer_count = state.peer_count;
+        self.last_error = state.last_error.clone();
+    }
+    pub fn handle_backend_event(&mut self, event: BackendEvent) {
+        match event {
+            BackendEvent::LogAdded {
+                level,
+                message,
+                source,
+            } => {
+                let ts = chrono::Local::now().format("%H:%M:%S");
+                self.logs.push(format!(
+                    "[{}] [{}] {}: {}",
+                    ts,
+                    level.as_str(),
+                    source,
+                    message
+                ));
+
+                if self.logs.len() > 200 {
+                    self.logs.drain(..50);
+                }
+            }
+            BackendEvent::Error { code, message } => {
+                self.popup = Popup::Error(format!("[{}] {}", code, message));
+                self.mode = Mode::Popup(Popup::Error(String::new()));
+                self.logs.push(format!("[ERR] {}", message));
+            }
+            BackendEvent::ConnectionStateChanged(state) => {
+                self.logs.push(format!("Connection → {}", state.as_str()));
+            }
+            BackendEvent::ProfileAdded(ref p) => {
+                let tag = p.tag.as_deref().unwrap_or("untitled");
+                self.logs.push(format!("Profile added: {}", tag));
+            }
+            BackendEvent::ProfileRemoved(_) => {
+                self.logs.push("Profile removed".into());
+                if !self.profiles.is_empty() && self.selected_profile >= self.profiles.len() {
+                    self.selected_profile = self.profiles.len() - 1;
+                }
+            }
+            _ => {}
+        }
+    }
+    pub fn update_metrics(&mut self, metrics: TrafficSnapshot) {
+        self.rx_bytes = metrics.bytes_rx;
+        self.tx_bytes = metrics.bytes_tx;
+        self.rx_packets = metrics.packets_rx;
+        self.tx_packets = metrics.packets_tx;
+
+        let now = std::time::Instant::now();
+        if let Some(last) = self.last_metrics_tick {
+            let dt = now.duration_since(last).as_secs_f64().max(0.001);
+
+            self.rx_bps = ((metrics.bytes_rx - self.prev_rx_bytes) as f64 / dt) as u64;
+            self.tx_bps = ((metrics.bytes_tx - self.prev_tx_bytes) as f64 / dt) as u64;
+
+            self.rx_history.push_back(self.rx_bps);
+            if self.rx_history.len() > 60 {
+                self.rx_history.pop_front();
+            }
+            self.tx_history.push_back(self.tx_bps);
+            if self.tx_history.len() > 60 {
+                self.tx_history.pop_front();
+            }
+        }
+
+        self.prev_rx_bytes = metrics.bytes_rx;
+        self.prev_tx_bytes = metrics.bytes_tx;
+        self.last_metrics_tick = Some(now);
+    }
 }
+use crate::backend::backend::BackendEvent;
+use vpn_daemon::transport::server::TrafficSnapshot;

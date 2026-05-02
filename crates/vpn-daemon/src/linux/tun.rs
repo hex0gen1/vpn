@@ -1,5 +1,6 @@
 use std::io::{self};
 use std::os::{fd::AsRawFd, fd::FromRawFd, fd::OwnedFd};
+#[derive(Debug)]
 pub struct TunFd(pub OwnedFd);
 use nix::errno::Errno;
 use nix::unistd;
@@ -12,6 +13,7 @@ impl AsRawFd for TunFd {
 }
 
 #[allow(unused)]
+#[derive(Debug)]
 pub struct TunInterface {
     fd: tokio::io::unix::AsyncFd<TunFd>,
     name: String,
@@ -54,7 +56,7 @@ impl TunInterface {
             let mut guard = self.fd.writable().await?;
 
             match guard.try_io(|inner| match unistd::write(&inner.get_ref().0, packet) {
-                Ok(result) if result == packet.len() => return Ok(result),
+                Ok(result) if result > 0 => return Ok(result),
                 Ok(_) => Err(io::Error::new(
                     io::ErrorKind::WriteZero,
                     "too short packet to write",

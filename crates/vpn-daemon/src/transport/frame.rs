@@ -12,6 +12,7 @@ pub enum CipherAlg {
     AesGcm,
     ChaCha20,
 }
+#[derive(Debug)]
 pub struct CryptoState {
     pub key: [u8; 32],
     pub tx_nonce: std::sync::atomic::AtomicU64,

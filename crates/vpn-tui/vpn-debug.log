@@ -1,0 +1,236 @@
+2026-05-02T02:29:29.534090Z  INFO crates/vpn-tui/src/main.rs:720: 🟢 Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-02T02:29:29.534172Z DEBUG crates/vpn-tui/src/main.rs:721: 🐛 DEBUG test message
+2026-05-02T02:29:29.545530Z  INFO crates/vpn-tui/src/main.rs:456: Local test server spawned on 127.0.0.1:11949
+2026-05-02T02:29:29.546854Z  INFO crates/vpn-tui/src/main.rs:477: Server listening on 127.0.0.1:11949
+2026-05-02T02:34:19.087873Z  INFO crates/vpn-tui/src/main.rs:725: 🟢 Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-02T02:34:19.087922Z DEBUG crates/vpn-tui/src/main.rs:726: 🐛 DEBUG test message
+2026-05-02T02:34:19.096362Z  INFO crates/vpn-tui/src/main.rs:461: Local test server spawned on 127.0.0.1:11949
+2026-05-02T02:34:19.096438Z  INFO crates/vpn-tui/src/main.rs:482: Server listening on 127.0.0.1:11949
+2026-05-02T02:34:31.431251Z  INFO crates/vpn-tui/src/main.rs:315: Added profile : Some(Some("LocalTest"))
+2026-05-02T02:36:01.442094Z  INFO crates/vpn-tui/src/main.rs:725: 🟢 Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-02T02:36:01.442145Z DEBUG crates/vpn-tui/src/main.rs:726: 🐛 DEBUG test message
+2026-05-02T02:36:01.448357Z  INFO crates/vpn-tui/src/main.rs:461: Local test server spawned on 127.0.0.1:11949
+2026-05-02T02:36:01.448412Z  INFO crates/vpn-tui/src/main.rs:482: Server listening on 127.0.0.1:11949
+2026-05-02T02:36:08.736361Z  INFO crates/vpn-tui/src/main.rs:315: Added profile : Some(Some("LocalTest"))
+2026-05-02T02:36:39.426160Z  INFO crates/vpn-tui/src/main.rs:315: Added profile : Some(Some("LocalTest"))
+2026-05-02T02:40:01.933446Z  INFO crates/vpn-tui/src/main.rs:727: 🟢 Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-02T02:40:01.933499Z DEBUG crates/vpn-tui/src/main.rs:728: 🐛 DEBUG test message
+2026-05-02T02:40:01.942123Z  INFO crates/vpn-tui/src/main.rs:463: Local test server spawned on 127.0.0.1:11949
+2026-05-02T02:40:01.942187Z  INFO crates/vpn-tui/src/main.rs:484: Server listening on 127.0.0.1:11949
+2026-05-02T02:40:10.433904Z  INFO crates/vpn-tui/src/main.rs:315: Added profile : Some(Some("LocalTest"))
+2026-05-02T02:40:16.073960Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:44:20.198649Z  INFO crates/vpn-tui/src/main.rs:727: 🟢 Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-02T02:44:20.198703Z DEBUG crates/vpn-tui/src/main.rs:728: 🐛 DEBUG test message
+2026-05-02T02:44:20.204080Z  INFO crates/vpn-tui/src/main.rs:463: Local test server spawned on 127.0.0.1:11949
+2026-05-02T02:44:20.204144Z  INFO crates/vpn-tui/src/main.rs:484: Server listening on 127.0.0.1:11949
+2026-05-02T02:44:27.102480Z  INFO crates/vpn-tui/src/main.rs:315: Added profile : Some(Some("LocalTest"))
+2026-05-02T02:44:31.029583Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:44:36.269126Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:44:37.472462Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:44:37.802813Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:44:37.989652Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:44:38.161176Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:44:38.324727Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:44:38.449966Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:44:38.589180Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:44:47.527162Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:44:51.800251Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:49:02.715373Z  INFO crates/vpn-tui/src/main.rs:727: 🟢 Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-02T02:49:02.715435Z DEBUG crates/vpn-tui/src/main.rs:728: 🐛 DEBUG test message
+2026-05-02T02:49:02.722645Z  INFO crates/vpn-tui/src/main.rs:463: Local test server spawned on 127.0.0.1:11949
+2026-05-02T02:49:02.722733Z  INFO crates/vpn-tui/src/main.rs:484: Server listening on 127.0.0.1:11949
+2026-05-02T02:49:08.021118Z  INFO crates/vpn-tui/src/main.rs:315: Added profile : Some(Some("LocalTest"))
+2026-05-02T02:49:10.225976Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:49:10.226026Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:49:19.133350Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:49:19.133409Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:51:45.836217Z  INFO crates/vpn-tui/src/main.rs:727: 🟢 Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-02T02:51:45.836272Z DEBUG crates/vpn-tui/src/main.rs:728: 🐛 DEBUG test message
+2026-05-02T02:51:45.843773Z  INFO crates/vpn-tui/src/main.rs:463: Local test server spawned on 127.0.0.1:11949
+2026-05-02T02:51:45.846853Z  INFO crates/vpn-tui/src/main.rs:484: Server listening on 127.0.0.1:11949
+2026-05-02T02:51:49.273322Z  INFO crates/vpn-tui/src/main.rs:315: Added profile : Some(Some("LocalTest"))
+2026-05-02T02:51:52.243771Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:51:52.243831Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:51:52.243825Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T02:51:57.693715Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:51:57.693766Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:51:57.693819Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T02:51:58.651540Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:51:58.651595Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:51:58.651599Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T02:51:58.992068Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:51:58.992115Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:51:58.992114Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T02:51:59.220894Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:51:59.220959Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:51:59.220930Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T02:54:54.474108Z  INFO crates/vpn-tui/src/main.rs:727: 🟢 Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-02T02:54:54.474165Z DEBUG crates/vpn-tui/src/main.rs:728: 🐛 DEBUG test message
+2026-05-02T02:54:54.480123Z  INFO crates/vpn-tui/src/main.rs:463: Local test server spawned on 127.0.0.1:11949
+2026-05-02T02:54:54.480197Z  INFO crates/vpn-tui/src/main.rs:484: Server listening on 127.0.0.1:11949
+2026-05-02T02:55:08.508490Z  INFO crates/vpn-tui/src/main.rs:315: Added profile : Some(Some("LocalTest"))
+2026-05-02T02:55:17.145786Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:55:17.145836Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:55:17.145867Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T02:55:22.795453Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:55:22.795511Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:55:22.795510Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T02:55:23.701588Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:55:23.701637Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T02:55:23.701644Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:55:28.418964Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:55:28.419016Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:55:28.419063Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T02:56:06.888920Z  INFO crates/vpn-tui/src/main.rs:727: 🟢 Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-02T02:56:06.888971Z DEBUG crates/vpn-tui/src/main.rs:728: 🐛 DEBUG test message
+2026-05-02T02:56:06.895115Z  INFO crates/vpn-tui/src/main.rs:463: Local test server spawned on 127.0.0.1:11949
+2026-05-02T02:56:06.896011Z  INFO crates/vpn-tui/src/main.rs:484: Server listening on 127.0.0.1:11949
+2026-05-02T02:56:11.105168Z  INFO crates/vpn-tui/src/main.rs:315: Added profile : Some(Some("LocalTest"))
+2026-05-02T02:56:14.283193Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:56:14.283251Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:56:14.283259Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T02:56:14.283317Z  WARN crates/vpn-tui/src/backend/backend.rs:188: [DNS INVALID] Invalid host.
+2026-05-02T02:56:23.789602Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T02:56:23.789653Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T02:56:23.789667Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T02:56:23.789696Z  INFO crates/vpn-tui/src/backend/backend.rs:183: [BACKEND] applying constructed dns.
+2026-05-02T02:56:23.791102Z DEBUG crates/vpn-tui/src/backend/backend.rs:220: [BACKEND] Attempting to start connection
+2026-05-02T02:56:23.791592Z DEBUG crates/vpn-tui/src/main.rs:525: First client added. 127.0.0.1:46516
+2026-05-02T02:56:23.791807Z DEBUG crates/vpn-tui/src/main.rs:548: Handshake OK for session 17044282125302772383
+2026-05-02T02:56:23.794172Z  INFO crates/vpn-tui/src/backend/backend.rs:374: Async TUN bridge started
+2026-05-02T02:56:23.794281Z  INFO crates/vpn-tui/src/backend/backend.rs:234: Connection successfuly started.
+2026-05-02T02:56:23.795162Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.795328Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.795488Z DEBUG crates/vpn-tui/src/main.rs:599: ICMP: not ICMP protocol (proto=2)
+2026-05-02T02:56:23.795672Z DEBUG crates/vpn-tui/src/main.rs:599: ICMP: not ICMP protocol (proto=17)
+2026-05-02T02:56:23.795840Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.796045Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.796173Z DEBUG crates/vpn-tui/src/main.rs:599: ICMP: not ICMP protocol (proto=17)
+2026-05-02T02:56:23.796367Z DEBUG crates/vpn-tui/src/main.rs:599: ICMP: not ICMP protocol (proto=17)
+2026-05-02T02:56:23.796520Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.796697Z DEBUG crates/vpn-tui/src/main.rs:599: ICMP: not ICMP protocol (proto=2)
+2026-05-02T02:56:23.796850Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.797048Z DEBUG crates/vpn-tui/src/main.rs:599: ICMP: not ICMP protocol (proto=17)
+2026-05-02T02:56:23.797304Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.797456Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.797650Z DEBUG crates/vpn-tui/src/main.rs:599: ICMP: not ICMP protocol (proto=17)
+2026-05-02T02:56:23.797892Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.798072Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.798236Z DEBUG crates/vpn-tui/src/main.rs:599: ICMP: not ICMP protocol (proto=17)
+2026-05-02T02:56:23.798420Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.798580Z DEBUG crates/vpn-tui/src/main.rs:599: ICMP: not ICMP protocol (proto=17)
+2026-05-02T02:56:23.798795Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.799066Z DEBUG crates/vpn-tui/src/main.rs:599: ICMP: not ICMP protocol (proto=17)
+2026-05-02T02:56:23.799227Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:23.799357Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:56:32.381088Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:57:03.101062Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:58:07.101164Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T02:59:17.303263Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T02:59:18.333049Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T02:59:19.357148Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:00:14.077305Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T03:02:33.746304Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:34.749204Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:35.773117Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:36.797140Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:37.821126Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:38.845133Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:39.869343Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:40.893148Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:41.917208Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:42.941136Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:43.965145Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:44.989110Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:46.014122Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:47.038131Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:48.061121Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:49.085166Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:50.110150Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:51.133118Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:52.157070Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:53.181149Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:54.205114Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:55.229141Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:56.253143Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:57.278101Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:58.301075Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:02:59.325201Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:00.349098Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:01.373087Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:02.397067Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:03.421082Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:04.445163Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:05.469115Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:06.493098Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:07.517059Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:08.541109Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:09.565129Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:10.589083Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:11.613070Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:12.637058Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:13.661080Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:14.685116Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:15.709177Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:16.733075Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:17.757106Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:18.781167Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:19.805119Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:20.829109Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:21.854269Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:22.877137Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:03:23.901102Z DEBUG crates/vpn-tui/src/main.rs:638: ✅ ICMP reply generated, len=84
+2026-05-02T03:05:00.797086Z DEBUG crates/vpn-tui/src/main.rs:595: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:01.748294Z  INFO crates/vpn-tui/src/main.rs:660: Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-02T03:09:01.748344Z DEBUG crates/vpn-tui/src/main.rs:661: DEBUG test message
+2026-05-02T03:09:01.754779Z  INFO crates/vpn-tui/src/main.rs:463: Local test server spawned on 127.0.0.1:11949
+2026-05-02T03:09:01.754837Z  INFO crates/vpn-tui/src/main.rs:484: Server listening on 127.0.0.1:11949
+2026-05-02T03:09:13.198387Z  INFO crates/vpn-tui/src/main.rs:315: Added profile : Some(Some("LocalTest"))
+2026-05-02T03:09:36.449286Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T03:09:36.449331Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T03:09:36.449341Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T03:09:36.449356Z  INFO crates/vpn-tui/src/backend/backend.rs:183: [BACKEND] applying constructed dns.
+2026-05-02T03:09:36.451080Z DEBUG crates/vpn-tui/src/backend/backend.rs:220: [BACKEND] Attempting to start connection
+2026-05-02T03:09:36.451620Z DEBUG crates/vpn-tui/src/main.rs:525: First client added. 127.0.0.1:53869
+2026-05-02T03:09:36.452502Z DEBUG crates/vpn-tui/src/main.rs:548: Handshake OK for session 13950925827814333951
+2026-05-02T03:09:36.454695Z  INFO crates/vpn-tui/src/backend/backend.rs:374: Async TUN bridge started
+2026-05-02T03:09:36.454820Z  INFO crates/vpn-tui/src/backend/backend.rs:234: Connection successfuly started.
+2026-05-02T03:09:36.455380Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.455640Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.455867Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=2)
+2026-05-02T03:09:36.456021Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.456166Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:09:36.456290Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:09:36.456412Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.456691Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.456864Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:09:36.457008Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.457176Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:09:36.457281Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.457693Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.457886Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:09:36.458016Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:09:36.458214Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.458426Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=2)
+2026-05-02T03:09:36.458571Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:09:36.458704Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.458896Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.459026Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:09:36.459171Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.459289Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.459417Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:36.459560Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:09:44.942894Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:45.981061Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:47.005126Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:48.029087Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:49.054118Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:50.077122Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:51.101146Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:52.125102Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:53.149136Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:54.173396Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:55.174280Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:56.221118Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:09:56.733098Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:10:53.053123Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
