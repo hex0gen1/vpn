@@ -234,3 +234,98 @@
 2026-05-02T03:09:56.221118Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
 2026-05-02T03:09:56.733098Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
 2026-05-02T03:10:53.053123Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:12.454540Z  INFO crates/vpn-tui/src/main.rs:660: Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-02T03:21:12.455319Z DEBUG crates/vpn-tui/src/main.rs:661: DEBUG test message
+2026-05-02T03:21:12.507129Z  INFO crates/vpn-tui/src/main.rs:463: Local test server spawned on 127.0.0.1:11949
+2026-05-02T03:21:12.507221Z  INFO crates/vpn-tui/src/main.rs:484: Server listening on 127.0.0.1:11949
+2026-05-02T03:21:31.012125Z  INFO crates/vpn-tui/src/main.rs:315: Added profile : Some(Some("LocalTest"))
+2026-05-02T03:21:34.530897Z DEBUG crates/vpn-tui/src/backend/backend.rs:109: [HANDLE] Cmd sended.
+2026-05-02T03:21:34.531013Z DEBUG crates/vpn-tui/src/main.rs:331: Connect cmd sent to backend.
+2026-05-02T03:21:34.530959Z  INFO crates/vpn-tui/src/backend/backend.rs:177: [BACKEND] Handling connection command.
+2026-05-02T03:21:34.531448Z  INFO crates/vpn-tui/src/backend/backend.rs:183: [BACKEND] applying constructed dns.
+2026-05-02T03:21:34.532235Z DEBUG crates/vpn-tui/src/backend/backend.rs:220: [BACKEND] Attempting to start connection
+2026-05-02T03:21:34.533319Z DEBUG crates/vpn-tui/src/main.rs:525: First client added. 127.0.0.1:50770
+2026-05-02T03:21:34.534572Z DEBUG crates/vpn-tui/src/main.rs:548: Handshake OK for session 1301510045927329315
+2026-05-02T03:21:34.539275Z  INFO crates/vpn-tui/src/backend/backend.rs:374: Async TUN bridge started
+2026-05-02T03:21:34.539473Z  INFO crates/vpn-tui/src/backend/backend.rs:234: Connection successfuly started.
+2026-05-02T03:21:34.540641Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.541568Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.541814Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=2)
+2026-05-02T03:21:34.542617Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:21:34.544219Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.548309Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.549548Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:21:34.549820Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.550516Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:21:34.553338Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.555355Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=2)
+2026-05-02T03:21:34.556406Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:21:34.558569Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.558924Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.559350Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:21:34.560780Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.561581Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.561943Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:21:34.565835Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.566302Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:21:34.566858Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.569047Z DEBUG crates/vpn-tui/src/main.rs:597: ICMP: not ICMP protocol (proto=17)
+2026-05-02T03:21:34.569705Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:34.570570Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:38.272362Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:39.325283Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:40.350425Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:41.245956Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:21:41.350830Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:42.399181Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:43.400259Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:44.445248Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:45.469248Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:46.493278Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:47.518463Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:48.542248Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:49.565207Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:50.590203Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:51.613243Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:52.637208Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:53.661223Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:54.685292Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:55.709159Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:56.733183Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:57.757327Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:58.782254Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:21:59.805181Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:00.829230Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:01.853167Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:02.877256Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:03.901213Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:04.926235Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:05.949142Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:06.973242Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:07.997139Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:09.021101Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:10.045145Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:11.069237Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:12.093118Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:13.117114Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:14.141196Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:15.165127Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:16.189132Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:17.085139Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:22:17.188436Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:18.238520Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:19.261162Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:20.285129Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:21.309205Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:22.333761Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:23.357106Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:24.381129Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:25.406116Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:26.429131Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:27.453162Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:22:28.478141Z DEBUG crates/vpn-tui/src/main.rs:633: ICMP reply generated, len=84
+2026-05-02T03:23:26.717094Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:25:41.885143Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:30:40.893068Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:40:30.717072Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
+2026-05-02T03:59:37.598056Z DEBUG crates/vpn-tui/src/main.rs:593: ICMP: not IPv4 (version=6)
