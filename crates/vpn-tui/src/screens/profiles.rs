@@ -5,7 +5,7 @@ use ratatui::{
 };
 
 use crate::app::App;
-
+use crate::screens::constants;
 pub fn render(frame: &mut Frame, app: &App, area: Rect) {
     let mut text = String::from("Profiles:\n\n");
 
@@ -17,8 +17,12 @@ pub fn render(frame: &mut Frame, app: &App, area: Rect) {
         }
     }
 
-    let widget =
-        Paragraph::new(text).block(Block::default().title("Profiles").borders(Borders::ALL));
+    let widget = Paragraph::new(text).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(constants::BORDER_STYLE)
+            .padding(constants::PADDING),
+    );
 
     frame.render_widget(widget, area);
 }

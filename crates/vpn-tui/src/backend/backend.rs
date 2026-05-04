@@ -1,8 +1,16 @@
 use crate::app::ConnectionState;
 use serde::{Deserialize, Serialize};
+use std::net::SocketAddr;
+use std::sync::Arc;
 use tokio::sync::{broadcast, mpsc, watch};
 use vpn_daemon::linux::tun::TunInterface;
 use vpn_daemon::transport::server::{ServerState, TrafficCounters, TrafficSnapshot};
+use vpn_daemon::transport::{
+    frame::FrameKind,
+    frame::decode_frame,
+    frame::encode_frame,
+    transport::{ActiveTransport, AsyncTransport},
+};
 use vpn_types::VpnProfile;
 //backend struct for tui -> backend communication
 #[derive(Debug, Clone)]
@@ -152,11 +160,11 @@ impl Backend {
         //event doesnt need rx, cuz it just sends events from tui. for communication used
         //cmd_rx,state_rx;
         let (event_tx, _) = broadcast::channel(256);
-        let (metrics_tx, metrix_rx) = watch::channel(TrafficSnapshot::default());
+        let (_metrics_tx, metrix_rx) = watch::channel(TrafficSnapshot::default());
 
         let backend = Self {
-            cmd_rx: cmd_rx,
-            state_tx: state_tx,
+            cmd_rx,
+            state_tx,
             event_tx: event_tx.clone(),
             state: BackendState::default(),
             server_state: std::sync::Arc::new(ServerState::new(cfg.subnet, cfg.pool_size)),
@@ -192,7 +200,7 @@ impl Backend {
                 let cancel = tokio_util::sync::CancellationToken::new();
                 self.active_cancel = Some(cancel.clone());
 
-                let (tx_to_tun, rx_from_tun): (mpsc::Sender<Vec<u8>>, mpsc::Receiver<Vec<u8>>) =
+                let (_tx_to_tun, _rx_from_tun): (mpsc::Sender<Vec<u8>>, mpsc::Receiver<Vec<u8>>) =
                     tokio::sync::mpsc::channel(1024);
 
                 let metrics = self.metrics.clone();
@@ -201,7 +209,7 @@ impl Backend {
                 let profile_clone = profile.clone();
 
                 self.state.connections = ConnectionState::Connecting;
-                self.state.active_profile = (Some(profile.tag.clone().unwrap_or_default()));
+                self.state.active_profile = Some(profile.tag.clone().unwrap_or_default());
                 self.state_tx.send_replace(self.state.clone());
                 let _ = self.event_tx.send(BackendEvent::ConnectionStateChanged(
                     ConnectionState::Connecting,
@@ -280,7 +288,7 @@ impl Backend {
                     source: "backend".into(),
                 });
             }
-            UiCommand::RemoveProfile(index) => {}
+            UiCommand::RemoveProfile(_) => {}
             UiCommand::RequestMetrics => {
                 let snap = self.metrics.snapshot();
                 let _ = self.event_tx.send(BackendEvent::MetricsUpdated {
@@ -320,12 +328,9 @@ async fn metrics_reporter(
         });
     }
 }
-use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
-use std::sync::Arc;
-use vpn_daemon::transport::{frame::FrameKind, frame::decode_frame, frame::encode_frame};
 pub struct ClientContext {
     pub profile: VpnProfile,
-    pub socket: tokio::net::UdpSocket,
+    pub transport: ActiveTransport,
     pub session_id: u64,
     pub crypto: Arc<vpn_daemon::transport::frame::CryptoState>,
     pub server_addr: std::net::SocketAddr,
@@ -336,22 +341,28 @@ pub struct ClientContext {
 async fn establish_connection(
     profile: VpnProfile,
     server_addr: SocketAddr,
-    metrics: std::sync::Arc<TrafficCounters>,
-    event_tx: broadcast::Sender<BackendEvent>,
+    _metrics: std::sync::Arc<TrafficCounters>,
+    _event_tx: broadcast::Sender<BackendEvent>,
     cancel: tokio_util::sync::CancellationToken,
     tun: Arc<tokio::sync::Mutex<TunInterface>>,
     crypto: Arc<vpn_daemon::transport::frame::CryptoState>,
 ) -> anyhow::Result<()> {
-    let socket = tokio::net::UdpSocket::bind("0.0.0.0:0").await?;
-    socket.connect(server_addr).await?;
+    let mut transport = ActiveTransport::connect(
+        &profile.host,
+        profile.port,
+        vpn_types::Transport::Auto,
+        std::time::Duration::from_secs(10),
+    )
+    .await?;
+    tracing::info!("Connected via {}", transport.transport_type());
     let session_id = generate_session_id();
 
     let (net_to_tun_tx, net_to_tun_rx) = mpsc::channel(1024);
     let (tun_to_net_tx, tun_to_net_rx) = mpsc::channel(1024);
 
-    let ctx = ClientContext {
+    let mut ctx = ClientContext {
         profile: profile.clone(),
-        socket: socket,
+        transport,
         session_id,
         crypto: crypto.clone(),
         server_addr,
@@ -359,7 +370,7 @@ async fn establish_connection(
         rx_from_tun: tun_to_net_rx,
         cancel: cancel.clone(),
     };
-    client_handshake(&ctx).await?;
+    client_handshake(&mut ctx).await?;
     let tunn = tun.clone();
     let guard = tunn.lock().await;
     let tun_name = guard.name();
@@ -375,16 +386,19 @@ async fn establish_connection(
     tokio::spawn(client_data_loop(ctx));
     Ok(())
 }
-async fn client_handshake(ctx: &ClientContext) -> anyhow::Result<()> {
+async fn client_handshake(ctx: &mut ClientContext) -> anyhow::Result<()> {
     let token = ctx.profile.uuid.as_bytes();
     let hello = encode_frame(FrameKind::HELLO, ctx.session_id, token);
     let encrypted = encrypt_frame(&hello, ctx.crypto.clone()).await?;
 
-    ctx.socket.send(&encrypted).await?;
+    ctx.transport.send_frame(&encrypted).await?;
 
     let mut buf = vec![0u8; 2048];
-    let len = tokio::time::timeout(std::time::Duration::from_secs(5), ctx.socket.recv(&mut buf))
-        .await??;
+    let len = tokio::time::timeout(
+        std::time::Duration::from_secs(5),
+        ctx.transport.recv_frame(&mut buf),
+    )
+    .await??;
     let plaintext = decrypt_frame(&buf[..len], ctx.crypto.clone()).await?;
 
     let frame = decode_frame(&plaintext).unwrap();
@@ -405,21 +419,19 @@ async fn client_data_loop(ctx: ClientContext) {
     let mut buf = vec![0u8; 1500];
     let mut rx = ctx.rx_from_tun;
     let tx_to_tun = ctx.tx_to_tun;
-    let socket = ctx.socket;
+    let mut transport = ctx.transport;
     let crypto = ctx.crypto;
     let cancel = ctx.cancel;
 
     loop {
         tokio::select! {
-            res = socket.recv(&mut buf) => {
+            res = transport.recv_frame(&mut buf) => {
                 match res {
                     Ok(len) => {
                         match decrypt_frame(&buf[..len], crypto.clone()).await {
                             Ok(frame_bytes) => {
-                                if let Ok(frame) = decode_frame(&frame_bytes) {
-                                    if frame.kind == FrameKind::DATA {
+                                if let Ok(frame) = decode_frame(&frame_bytes) && frame.kind == FrameKind::DATA {
                                         let _ = tx_to_tun.send(frame.payload).await;
-                                    }
                                 }
                             }
                             Err(_) => continue,
@@ -432,7 +444,7 @@ async fn client_data_loop(ctx: ClientContext) {
                 let frame = encode_frame(FrameKind::DATA, ctx.session_id, &packet);
                 match encrypt_frame(&frame, crypto.clone()).await {
                     Ok(encrypted) => {
-                        let _ = socket.send(&encrypted).await;
+                        let _ = transport.send_frame(&encrypted).await;
                     }
                     Err(_) => continue,
                 }
@@ -454,7 +466,7 @@ pub fn start_tun_bridge(
         let mut buf = vec![0u8; 1500];
         loop {
             let len = {
-                let mut guard = tun_reader.lock().await;
+                let guard = tun_reader.lock().await;
                 match guard.read_packet(&mut buf).await {
                     Ok(n) => n,
                     Err(e) => {
@@ -474,7 +486,7 @@ pub fn start_tun_bridge(
     tokio::spawn(async move {
         while let Some(mut packet) = rx_from_net.recv().await {
             {
-                let mut guard = tun_writer.lock().await;
+                let guard = tun_writer.lock().await;
                 guard.write_packet(&mut packet).await.ok();
             }
         }

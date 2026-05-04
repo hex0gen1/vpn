@@ -1,24 +1,16 @@
 use color_eyre::Result;
-use crossterm::event::{self, Event, KeyCode, KeyEventKind};
+use crossterm::event::{Event, KeyCode, KeyEventKind};
 use ratatui::prelude::*;
-use ratatui::{
-    Frame, layout::Layout, widgets::Block, widgets::BorderType, widgets::Borders,
-    widgets::Paragraph,
-};
-use tokio::sync::{mpsc, watch};
-use tokio_util::sync::CancellationToken;
-use vpn_types::{Protocol, Security, VpnProfile};
+use tokio::sync::mpsc;
 mod app;
 mod backend;
 mod events;
 mod screens;
 mod ui;
 use crate::app::{App, Mode, Popup};
-use screens::{home, parser, pdetails, profiles};
-use vpn_daemon::{
-    daemon::runtime, linux::routing, linux::tun, transport::client, transport::frame,
-    transport::packet, transport::server,
-};
+use vpn_daemon::transport::frame::{FrameKind, decode_frame, encode_frame};
+use vpn_daemon::transport::server::encrypt_frame;
+use vpn_daemon::{linux::tun, transport::server};
 #[derive(Debug, Clone, PartialEq)]
 pub enum VpnStatus {
     Disconnected,
@@ -32,7 +24,11 @@ pub struct VpnState {
     pub status: VpnStatus,
     pub logs: Vec<String>,
 }
-
+impl Default for VpnState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl VpnState {
     pub fn new() -> Self {
         Self {
@@ -45,236 +41,6 @@ impl VpnState {
         if self.logs.len() > 60 {
             self.logs.drain(..10);
         }
-    }
-}
-
-fn handle_normal_event(
-    app: &mut app::App,
-    event: Event,
-    state_rx: &watch::Receiver<VpnState>,
-    cmd_tx: &mpsc::Sender<UiCommand>,
-) {
-    if let Event::Key(key) = event {
-        if key.kind != KeyEventKind::Press {
-            return;
-        }
-        match key.code {
-            KeyCode::Esc | KeyCode::Char('q') => {
-                app.mode = Mode::Popup(Popup::ConfirmQuit);
-                app.popup = Popup::ConfirmQuit;
-            }
-            KeyCode::Char('h') => app.screen = app::Screen::Home,
-            KeyCode::Char('p') => app.screen = app::Screen::Profiles,
-            KeyCode::Char('l') => app.screen = app::Screen::Logs,
-            KeyCode::Char('y') => {
-                app.screen = app::Screen::Parser;
-                app.mode = Mode::Input;
-            }
-            KeyCode::Char('j') => app.next_profile(),
-            KeyCode::Char('k') => app.prev_profile(),
-            KeyCode::Enter => {
-                if app.screen == app::Screen::Profiles {
-                    app.screen = app::Screen::ProfilesDetail
-                }
-            }
-            _ => {}
-        }
-    }
-}
-
-fn handle_input_event(app: &mut app::App, event: Event) {
-    match event {
-        Event::Paste(text) => {
-            app.input_str.push_str(&text);
-        }
-        Event::Key(key) => {
-            if key.kind != KeyEventKind::Press {
-                return;
-            }
-            match key.code {
-                KeyCode::Esc => app.mode = Mode::Normal,
-                KeyCode::Enter => {
-                    let input = std::mem::take(&mut app.input_str);
-                    app.mode = Mode::Normal;
-                    match vpn_daemon::parser::parse_vless::parse_vless_link(&input) {
-                        Ok(profile) => {
-                            app.profiles.push(profile.clone());
-                            app.popup = Popup::PreviewAdd(profile.clone());
-                            app.mode = Mode::Popup(Popup::PreviewAdd(profile.clone()));
-                            app.selected_profile += 1;
-                            tracing::info!("Added profile : {:?}", Some(profile.tag))
-                        }
-                        Err(err) => {
-                            eprintln!("parse error: {err}");
-                        }
-                    }
-                }
-                KeyCode::Delete => {
-                    app.delete_selected_profile();
-                }
-                KeyCode::Char(c) => {
-                    app.input_str.push(c);
-                    app.cursor_pos += 1;
-                }
-                KeyCode::Left => {
-                    if app.cursor_pos > 0 {
-                        app.cursor_pos -= 1;
-                    }
-                }
-                KeyCode::Right => {
-                    if app.cursor_pos < app.input_str.len() {
-                        app.cursor_pos += 1;
-                    }
-                }
-                KeyCode::Backspace => {
-                    if app.cursor_pos > 0 {
-                        app.cursor_pos -= 1;
-                        app.input_str.remove(app.cursor_pos);
-                    }
-                }
-                KeyCode::Home => {
-                    app.cursor_pos = 0;
-                }
-                KeyCode::End => {
-                    app.cursor_pos = app.input_str.len();
-                }
-                _ => {}
-            }
-        }
-        _ => {}
-    }
-}
-
-fn handle_details_event(app: &mut app::App, event: Event) {
-    match event {
-        Event::Key(key) => {
-            if key.kind != KeyEventKind::Press {
-                return;
-            }
-            match key.code {
-                KeyCode::Enter | KeyCode::Char('l') => {
-                    app.screen = app::Screen::ProfilesDetail;
-                }
-                _ => {}
-            }
-        }
-        _ => {}
-    }
-}
-
-fn handle_popup_event(
-    app: &mut app::App,
-    event: Event,
-    state_rx: &watch::Receiver<VpnState>,
-    cmd_tx: &mpsc::Sender<UiCommand>,
-) {
-    match &app.popup {
-        Popup::ConfirmDelete => match event {
-            Event::Key(key) => {
-                if key.kind != KeyEventKind::Press {
-                    return;
-                }
-                match key.code {
-                    KeyCode::Enter => {
-                        app.mode = Mode::Normal;
-                        app.delete_selected_profile();
-                        app.popup = Popup::None;
-                    }
-                    KeyCode::Esc | KeyCode::Char('q') => {
-                        app.mode = Mode::Normal;
-                        app.popup = Popup::None;
-                    }
-                    _ => {}
-                }
-            }
-            _ => {}
-        },
-        Popup::None => {}
-        Popup::ParserResult => match event {
-            Event::Key(key) => {
-                if key.kind != KeyEventKind::Press {
-                    return;
-                }
-                match key.code {
-                    KeyCode::Esc | KeyCode::Char('q') => {
-                        app.mode = Mode::Normal;
-                        app.popup = Popup::None;
-                    }
-                    _ => {}
-                }
-            }
-            _ => {}
-        },
-        Popup::Connect => match event {
-            Event::Key(key) => {
-                if key.kind != KeyEventKind::Press {
-                    return;
-                }
-                match key.code {
-                    KeyCode::Esc | KeyCode::Char('q') => {
-                        app.mode = Mode::Normal;
-                        app.popup = Popup::None;
-                    }
-                    _ => {}
-                }
-            }
-            _ => {}
-        },
-        Popup::ConfirmQuit => match event {
-            Event::Key(key) => {
-                if key.kind != KeyEventKind::Press {
-                    return;
-                }
-                match key.code {
-                    KeyCode::Char('y') => {
-                        app.should_quit = true;
-                        app.mode = Mode::Normal;
-                        app.popup = Popup::None;
-                    }
-                    KeyCode::Char('n') => {
-                        app.mode = Mode::Normal;
-                        app.popup = Popup::None;
-                    }
-                    _ => {}
-                }
-            }
-            _ => {}
-        },
-        Popup::Error(_) => match event {
-            Event::Key(key) => {
-                if key.kind != KeyEventKind::Press {
-                    return;
-                }
-                match key.code {
-                    KeyCode::Esc | KeyCode::Char('q') => {
-                        app.mode = Mode::Normal;
-                        app.popup = Popup::None;
-                    }
-                    _ => {}
-                }
-            }
-            _ => {}
-        },
-        Popup::PreviewAdd(profile) => match event {
-            Event::Key(key) => {
-                if key.kind != KeyEventKind::Press {
-                    return;
-                }
-                match key.code {
-                    KeyCode::Enter => {
-                        app.mode = Mode::Normal;
-                        app.popup = Popup::None;
-                    }
-                    KeyCode::Esc => {
-                        app.mode = Mode::Normal;
-                        app.popup = Popup::None;
-                        app.profiles.remove(app.selected_profile);
-                    }
-                    _ => {}
-                }
-            }
-            _ => {}
-        },
     }
 }
 use app::Screen;
@@ -397,11 +163,9 @@ pub async fn run(
     loop {
         tokio::select! {
                 Some(Ok(event)) = events.next() => {
-                    if let Event::Key(key) = event {
-                        if key.kind == KeyEventKind::Press {
+                    if let Event::Key(key) = event && key.kind == KeyEventKind::Press {
                             handle_key_event(app, key, &handle).await;
                         }
-                    }
                 }
             _ = state_change.changed() => {
                 let state = state_change.borrow().clone();
@@ -445,7 +209,7 @@ async fn main() -> Result<()> {
         .status()?;
 
     let cfg = BackendConfig {
-        subnet: subnet,
+        subnet,
         pool_size: 254,
         tun_name: name.clone(),
     };
@@ -461,7 +225,7 @@ async fn main() -> Result<()> {
         }
     });
     tracing::info!("Local test server spawned on 127.0.0.1:11949");
-    let server_state = std::sync::Arc::new(server::ServerState::new(subnet, 254));
+    let _server_state = std::sync::Arc::new(server::ServerState::new(subnet, 254));
     let (backend, handle) = Backend::new(cfg, tun, cryptoo);
     //tokio::spawn(run_engine(cmd_rx, state_tx, server_state, tun));
     tokio::spawn(async move {
@@ -472,9 +236,6 @@ async fn main() -> Result<()> {
     ratatui::restore();
     result
 }
-use vpn_daemon::transport::frame::CryptoState;
-use vpn_daemon::transport::frame::{FrameKind, decode_frame, encode_frame};
-use vpn_daemon::transport::server::{decrypt_frame, encrypt_frame};
 pub async fn run_local_server(
     listen_addr: &str,
     tun: std::sync::Arc<tokio::sync::Mutex<vpn_daemon::linux::tun::TunInterface>>,
@@ -484,12 +245,11 @@ pub async fn run_local_server(
     tracing::info!("Server listening on {}", listen_addr);
 
     let (udp_to_tun_tx, udp_to_tun_rx) = mpsc::channel::<Vec<u8>>(1024);
-    let (tun_to_udp_tx, tun_to_udp_rx) = mpsc::channel::<Vec<u8>>(1024);
+    let (_tun_to_udp_tx, _tun_to_udp_rx) = mpsc::channel::<Vec<u8>>(1024);
     let mut from_udp = udp_to_tun_rx;
-    let mut tun_to_udpp_rx = tun_to_udp_rx;
-    let tun_r = tun.clone();
-    let tun_rr = tun.clone();
-    let tun_w = tun.clone();
+    let _tun_r = tun.clone();
+    let _tun_rr = tun.clone();
+    let _tun_w = tun.clone();
     tokio::spawn(async move {
         while let Some(mut packet) = from_udp.recv().await {
             let _ = tun.lock().await.write_packet(&mut packet).await;
@@ -573,16 +333,6 @@ pub async fn run_local_server(
     }
     Ok(())
 }
-fn init_logging() {
-    let filter = tracing_subscriber::EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| "warn,vpn_tui=debug,vpn_daemon=debug".into());
-
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .with_writer(std::io::stderr)
-        .try_init()
-        .ok();
-}
 fn emulate_icmp_reply(payload: &[u8]) -> Option<Vec<u8>> {
     if payload.len() < 28 {
         tracing::debug!("ICMP: packet too short ({})", payload.len());
@@ -643,7 +393,6 @@ pub fn initialize_loggingg() -> CResult<()> {
     let log_file = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
-        .write(true)
         .open(&log_path)?;
 
     let subscriber = tracing_subscriber::fmt()

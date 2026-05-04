@@ -53,6 +53,7 @@ pub enum Transport {
     Grpc,
     Other(String),
     Quic,
+    Auto,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -120,6 +121,7 @@ impl Transport {
             Transport::Grpc => String::from("Grpc"),
             Transport::Quic => String::from("Quic"),
             Transport::Other(text) => String::from(text),
+            Transport::Auto => String::from("Auto"),
         }
     }
 }

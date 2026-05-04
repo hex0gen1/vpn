@@ -1,10 +1,11 @@
+use crate::app::App;
+use crate::screens::constants;
+use crate::ui::Hotkeys;
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
     widgets::{Block, Borders, Paragraph},
 };
-
-use crate::app::App;
 
 const LOGO: &str = r#"
 ██   ██  █████  ███    ██  ██████  ███████ ████████
@@ -17,20 +18,35 @@ const LOGO: &str = r#"
 pub fn render(frame: &mut Frame, _app: &App, area: Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(8),
-            Constraint::Length(15),
-            Constraint::Min(3),
-        ])
+        .constraints([Constraint::Length(10), Constraint::Length(15)])
         .split(area);
 
-    let logo = Paragraph::new(LOGO).block(Block::default().borders(Borders::ALL).title("Logo"));
+    let logo = Paragraph::new(LOGO).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(constants::BORDER_STYLE)
+            .padding(constants::PADDING)
+            .title("Logo"),
+    );
 
-    let welcome = Paragraph::new(
-        "Welcome to Xanost VPN\n\nPress 'p' to open profiles\nPress 'l' to open logs\nPress y to use parser functions\nPress 'q' to quit"
-    )
-    .block(Block::default().borders(Borders::ALL).title("Welcome"));
-
+    let text_to_navigation = format!(
+        "This tui contains multi-screen hovering | Hotkeys to navigate:\n\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n",
+        Hotkeys::MvParser.as_str(),
+        Hotkeys::MvProfiles.as_str(),
+        Hotkeys::MvHome.as_str(),
+        Hotkeys::ExpandDetails.as_str(),
+        Hotkeys::MvLogs.as_str(),
+        Hotkeys::Quit.as_str(),
+        Hotkeys::ImportLink.as_str(),
+        "i: enter input mode",
+        "esc: leave input mode",
+    );
+    let navigation = Paragraph::new(text_to_navigation).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(constants::BORDER_STYLE)
+            .padding(constants::PADDING),
+    );
     frame.render_widget(logo, chunks[0]);
-    frame.render_widget(welcome, chunks[1]);
+    frame.render_widget(navigation, chunks[1]);
 }

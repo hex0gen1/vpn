@@ -6,7 +6,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, BorderType, Borders, Clear, Padding, Paragraph},
+    widgets::{Block, Borders, Clear, Paragraph},
 };
 use vpn_types::Protocol;
 #[derive(Debug)]
@@ -27,14 +27,14 @@ impl SK {
     }
     pub fn prefix(&self) -> &'static str {
         match self {
-            SK::Info => "ℹ",
-            SK::Warning => "⚠",
-            SK::Error => "✗",
-            SK::Success => "✓",
+            SK::Info => "ℹ️",
+            SK::Warning => "⚡️",
+            SK::Error => "❗️",
+            SK::Success => "☑️",
         }
     }
 }
-enum Hotkeys {
+pub enum Hotkeys {
     MvParser,
     MvHome,
     ExpandDetails,
@@ -44,15 +44,15 @@ enum Hotkeys {
     ImportLink,
 }
 impl Hotkeys {
-    fn as_str(hotkey: Hotkeys) -> String {
-        match hotkey {
-            Hotkeys::MvParser => "y: move to parser".to_string(),
-            Hotkeys::MvProfiles => "p: move to profiles".to_string(),
-            Hotkeys::MvHome => "h: move to homepage".to_string(),
-            Hotkeys::ExpandDetails => "enter: expand details".to_string(),
-            Hotkeys::MvLogs => "l: move to logs".to_string(),
-            Hotkeys::Quit => "q: quit application".to_string(),
-            Hotkeys::ImportLink => "ctrl+v: paste link from buffer".to_string(),
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Hotkeys::MvParser => "y: move to parser",
+            Hotkeys::MvProfiles => "p: move to profiles",
+            Hotkeys::MvHome => "h: move to homepage",
+            Hotkeys::ExpandDetails => "enter: expand details of profile",
+            Hotkeys::MvLogs => "l: move to logs",
+            Hotkeys::Quit => "q: quit application",
+            Hotkeys::ImportLink => "ctrl+shift+v: paste link from buffer",
         }
     }
 }
@@ -62,7 +62,7 @@ pub struct SB {
     pub sk: SK,
 }
 use crate::backend::backend::BackendState;
-pub fn render_deprecated(
+pub fn _render_deprecated(
     frame: &mut Frame,
     app: &App,
     backend: &tokio::sync::watch::Ref<'_, BackendState>,
@@ -118,7 +118,7 @@ pub fn render(frame: &mut Frame, app: &App, backend: &tokio::sync::watch::Ref<'_
     let layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),
+            Constraint::Length(5),
             Constraint::Min(5),
             Constraint::Length(3),
         ])
@@ -299,7 +299,16 @@ fn render_header(
         .as_ref()
         .map(|p| format!(" | {}", p))
         .unwrap_or_default();
-    let header_text = format!("{}{} | {}", title, profile_info, conn_status);
+    let header_text = format!(
+        "{}{} | {} | rx: {}/{} | tx: {}/{}",
+        title,
+        profile_info,
+        conn_status,
+        app.rx_packets,
+        app.rx_bytes,
+        app.tx_packets,
+        app.tx_bytes
+    );
 
     let header = Paragraph::new(header_text).block(
         Block::default()

@@ -1,19 +1,7 @@
 use crate::ui::{SB, SK};
-use ratatui::style::Color;
-use ratatui::widgets::{BorderType, Padding};
 use serde::{Deserialize, Serialize};
-use vpn_core::{CoreError, CoreState};
-use vpn_types::{Protocol, Security, Transport, VpnProfile};
-//style constants
-use crate::screens::constants;
-
-#[derive(Debug, Clone)]
-pub struct Profile {
-    pub name: String,
-    pub host: String,
-    pub port: u16,
-    pub protocol: String,
-}
+use vpn_core::CoreError;
+use vpn_types::{Security, VpnProfile};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Screen {
@@ -73,8 +61,8 @@ impl Popup {
             Popup::ParserResult => "ParserResult",
             Popup::None => "NoPopup",
             Popup::Connect => "Connect",
-            Popup::Error(error) => "Error",
-            Popup::PreviewAdd(profile) => "ConfirmAdd",
+            Popup::Error(_) => "Error",
+            Popup::PreviewAdd(_) => "ConfirmAdd",
         }
     }
 }
@@ -146,12 +134,6 @@ pub enum DName {
     Source,
     ImportedAt,
     Status,
-}
-#[derive(Debug)]
-pub enum Source {
-    Link,
-    QrCode,
-    Created,
 }
 impl DGName {
     pub fn as_str(&self) -> String {
@@ -239,6 +221,11 @@ impl DetailGroup {
     }
     pub fn push_field(&mut self, field: DetailField) {
         self.data.push(field);
+    }
+}
+impl Default for App {
+    fn default() -> Self {
+        Self::new()
     }
 }
 impl App {
@@ -442,7 +429,7 @@ impl App {
 
         self.profiles.remove(self.selected_profile);
 
-        if (self.selected_profile > 0 && self.selected_profile >= self.profiles.len()) {
+        if self.selected_profile > 0 && self.selected_profile >= self.profiles.len() {
             self.selected_profile -= 1;
         }
     }
