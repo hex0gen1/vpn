@@ -2,6 +2,7 @@ use crate::app::ConnectionState;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time;
 use tokio::sync::{broadcast, mpsc, watch};
 use vpn_daemon::linux::tun::TunInterface;
 use vpn_daemon::transport::server::{ServerState, TrafficCounters, TrafficSnapshot};
@@ -12,6 +13,7 @@ use vpn_daemon::transport::{
     transport::{ActiveTransport, AsyncTransport},
 };
 use vpn_types::VpnProfile;
+use vpn_types::error::ErrorLevel;
 //backend struct for tui -> backend communication
 #[derive(Debug, Clone)]
 pub enum UiCommand {
@@ -90,6 +92,7 @@ pub struct Backend {
     pub active_cancel: Option<tokio_util::sync::CancellationToken>,
     pub tun: Arc<tokio::sync::Mutex<TunInterface>>,
     pub crypto: Arc<vpn_daemon::transport::frame::CryptoState>,
+    pub last_active_profile: Option<VpnProfile>,
 }
 
 //implementation of structs
@@ -161,7 +164,6 @@ impl Backend {
         //cmd_rx,state_rx;
         let (event_tx, _) = broadcast::channel(256);
         let (_metrics_tx, metrix_rx) = watch::channel(TrafficSnapshot::default());
-
         let backend = Self {
             cmd_rx,
             state_tx,
@@ -172,6 +174,7 @@ impl Backend {
             active_cancel: Some(tokio_util::sync::CancellationToken::new()),
             tun,
             crypto,
+            last_active_profile: Some(VpnProfile::new()),
         };
         let metrics_clone = backend.metrics.clone();
         let state_tx_clone = backend.state_tx.clone();
@@ -186,13 +189,16 @@ impl Backend {
                 //if self.active_cancel.is_some() {
                 //    return;
                 //}
+                self.last_active_profile = Some(profile.clone());
                 let server_addr = match profile.host.parse::<std::net::IpAddr>() {
                     Ok(ip) => {
                         tracing::info!("[BACKEND] applying constructed dns.");
                         std::net::SocketAddr::new(ip, profile.port)
                     }
                     Err(_) => {
-                        self.report_error("DNS_INVALID", "Invalid host").await;
+                        self.handle_error(vpn_types::error::VpnError::DnsFailed(
+                            "Invalid host".into(),
+                        ));
                         tracing::warn!("[DNS INVALID] Invalid host.");
                         return;
                     }
@@ -300,11 +306,169 @@ impl Backend {
             UiCommand::RequestLogs => {}
         }
     }
-    async fn report_error(&self, code: &str, msg: &str) {
-        let _ = self.event_tx.send(BackendEvent::Error {
-            code: code.into(),
-            message: msg.into(),
+    async fn handle_error(&mut self, error: vpn_types::error::VpnError) {
+        let level = error.level();
+        let log_level = error.log_level();
+
+        match level {
+            ErrorLevel::Recoverable => {
+                tracing::warn!("[{log_level}] {error} -> attempting retry");
+                self.event_tx
+                    .send(BackendEvent::LogAdded {
+                        level: LogLevel::Warn,
+                        source: "Network".into(),
+                        message: format!("{error}. trying to reconnect"),
+                    })
+                    .ok();
+                self.trigger_reconnect().await;
+            }
+            ErrorLevel::ConnectionFatal => {
+                tracing::error!("[{log_level}] {error} -> session terminated");
+                self.state.connections = ConnectionState::Failed;
+                self.state_tx.send_replace(self.state.clone());
+                self.event_tx
+                    .send(BackendEvent::LogAdded {
+                        level: LogLevel::Error,
+                        message: format!("{error}"),
+                        source: "connection".into(),
+                    })
+                    .ok();
+                self.cleanup_session().await;
+            }
+            ErrorLevel::AppFatal => {
+                tracing::error!("[{log_level}] {error} -> shutting down applcation.");
+                self.state.connections = ConnectionState::Failed;
+                self.event_tx
+                    .send(BackendEvent::Error {
+                        code: "FATAL".into(),
+                        message: error.to_string(),
+                    })
+                    .ok();
+                self.active_cancel.as_ref().unwrap().cancel();
+            }
+            ErrorLevel::Warning => {
+                tracing::debug!("[{log_level}] {error} -> packet dropped, continuing session.");
+            }
+        }
+    }
+    async fn trigger_reconnect(&mut self) {
+        let profile = match &self.last_active_profile {
+            Some(profile) => profile.clone(),
+            None => {
+                tracing::warn!("Reconnect failed. No profile was stored.");
+                let _ = self.event_tx.send(BackendEvent::LogAdded {
+                    level: LogLevel::Warn,
+                    message: "Cannot reconnect, no profile was stored in last session.".into(),
+                    source: "backend".into(),
+                });
+                return;
+            }
+        };
+        tracing::info!(
+            "Triggering reconnect with {} profile",
+            profile.clone().tag.unwrap()
+        );
+
+        self.cleanup_session().await;
+        tokio::time::sleep(time::Duration::from_secs(1)).await;
+
+        let server_addr = match profile.host.parse::<std::net::IpAddr>() {
+            Ok(ip) => SocketAddr::new(ip, profile.port),
+            Err(_) => {
+                tracing::error!(
+                    "Invalid host for reconnect: {} . Aborting operation.",
+                    profile.host
+                );
+                return;
+            }
+        };
+        let cancel = tokio_util::sync::CancellationToken::new();
+        self.active_cancel = Some(cancel.clone());
+
+        self.state.connections = ConnectionState::Connecting;
+        self.state_tx.send_replace(self.state.clone());
+        self.event_tx.send(BackendEvent::ConnectionStateChanged(
+            ConnectionState::Connecting,
+        ));
+        self.event_tx.send(BackendEvent::LogAdded {
+            level: LogLevel::Info,
+            message: "Reconnecting...".into(),
+            source: "Backend".into(),
         });
+        let metrics = self.metrics.clone();
+        let event_tx = self.event_tx.clone();
+        let state_tx = self.state_tx.clone();
+        let tun = self.tun.clone();
+        let crypto = self.crypto.clone();
+        let profile_clone = profile.clone();
+
+        tokio::spawn(async move {
+            match establish_connection(
+                profile_clone,
+                server_addr,
+                metrics,
+                event_tx.clone(),
+                cancel,
+                tun,
+                crypto,
+            )
+            .await
+            {
+                Ok(_) => {
+                    tracing::info!("Reconnecting succesfully done: {}", server_addr);
+                    let _ = state_tx.send_modify(|s| s.connections = ConnectionState::Connected);
+                    let _ = state_tx.send_modify(|s| s.last_error = None);
+                    let _ = event_tx.clone().send(BackendEvent::ConnectionStateChanged(
+                        ConnectionState::Connected,
+                    ));
+                    let _ = event_tx.send(BackendEvent::LogAdded {
+                        level: LogLevel::Info,
+                        message: format!("Reconnecting succesfully done: {}", server_addr),
+                        source: "Backend".into(),
+                    });
+                }
+                Err(e) => {
+                    tracing::error!("Reconnect failed: {}", e);
+                    let _ = state_tx.send_modify(|s| {
+                        s.connections = ConnectionState::Failed;
+                        s.last_error = Some(e.to_string());
+                    });
+                }
+            }
+        });
+    }
+    async fn cleanup_session(&mut self) {
+        tracing::info!("Session cleanup started.");
+
+        if let Some(cancel) = self.active_cancel.take() {
+            cancel.cancel();
+            tracing::debug!("Cleanup -> cancellation token triggered.");
+        }
+        self.state.connections = ConnectionState::Disconnected;
+        self.state.peer_count = 0;
+        self.state.last_error = None;
+        self.state_tx.send_replace(self.state.clone());
+
+        let _ = self.event_tx.send(BackendEvent::ConnectionStateChanged(
+            ConnectionState::Disconnected,
+        ));
+        let _ = self.event_tx.send(BackendEvent::LogAdded {
+            level: LogLevel::Info,
+            message: "Session cleaned up.".into(),
+            source: "Backend".into(),
+        });
+        self.metrics
+            .bytes_rx
+            .store(0, std::sync::atomic::Ordering::Relaxed);
+        self.metrics
+            .bytes_tx
+            .store(0, std::sync::atomic::Ordering::Relaxed);
+        self.metrics
+            .packets_rx
+            .store(0, std::sync::atomic::Ordering::Relaxed);
+        self.metrics
+            .packets_tx
+            .store(0, std::sync::atomic::Ordering::Relaxed);
     }
 }
 async fn metrics_reporter(

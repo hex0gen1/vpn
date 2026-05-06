@@ -7,3 +7,4 @@ pub const COLOR_SUCCESS: Color = Color::Green;
 pub const COLOR_ERROR: Color = Color::Red;
 pub const COLOR_WARN: Color = Color::Yellow;
 pub const COLOR_DIM: Color = Color::DarkGray;
+pub const COLOR_FATAL: Color = Color::Magenta;

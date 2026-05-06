@@ -4,7 +4,9 @@ use crate::ui::Hotkeys;
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
-    widgets::{Block, Borders, Paragraph},
+    style::Style,
+    text::{Line, Span, Text},
+    widgets::{Block, Borders, Paragraph, Wrap},
 };
 
 const LOGO: &str = r#"
@@ -15,10 +17,14 @@ const LOGO: &str = r#"
 ██   ██ ██   ██ ██   ████  ██████  ███████    ██
 "#;
 
-pub fn render(frame: &mut Frame, _app: &App, area: Rect) {
+pub fn render(frame: &mut Frame, app: &App, area: Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(10), Constraint::Length(15)])
+        .constraints([
+            Constraint::Length(10),
+            Constraint::Length(15),
+            Constraint::Max(30),
+        ])
         .split(area);
 
     let logo = Paragraph::new(LOGO).block(
@@ -47,6 +53,52 @@ pub fn render(frame: &mut Frame, _app: &App, area: Rect) {
             .border_type(constants::BORDER_STYLE)
             .padding(constants::PADDING),
     );
+    let visible_logs = if app.logs.len() > 15 {
+        &app.logs[app.logs.len() - 15..]
+    } else {
+        &app.logs[..]
+    };
+    let lines: Vec<Line> = visible_logs
+        .iter()
+        .map(|line| {
+            if line.contains("ERROR") {
+                Line::from(Span::styled(
+                    line,
+                    Style::default().fg(constants::COLOR_ERROR),
+                ))
+            } else if line.contains("WARN") {
+                Line::from(Span::styled(
+                    line,
+                    Style::default().fg(constants::COLOR_WARN),
+                ))
+            } else if line.contains("DEBUG") {
+                Line::from(Span::styled(
+                    line,
+                    Style::default().fg(constants::COLOR_DIM),
+                ))
+            } else if line.contains("FATAL") {
+                Line::from(Span::styled(
+                    line,
+                    Style::default().fg(constants::COLOR_FATAL),
+                ))
+            } else {
+                Line::from(Span::styled(
+                    line,
+                    Style::default().fg(constants::COLOR_DIM),
+                ))
+            }
+        })
+        .collect();
+
+    let logs_widget = Paragraph::new(Text::from(lines))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(constants::BORDER_STYLE)
+                .title(" SYSTEM LOGS "),
+        )
+        .wrap(Wrap { trim: true });
     frame.render_widget(logo, chunks[0]);
     frame.render_widget(navigation, chunks[1]);
+    frame.render_widget(logs_widget, chunks[2]);
 }

@@ -234,7 +234,7 @@ impl App {
             screen: Screen::Home,
             profiles: vec![VpnProfile::new()],
             selected_profile: 0,
-            logs: vec!["App started".to_string(), "Mock backend ready".to_string()],
+            logs: vec!["App started".to_string()],
             connection_state: ConnectionState::Disconnected,
             should_quit: false,
             mode: Mode::Normal,
@@ -457,17 +457,8 @@ impl App {
                 source,
             } => {
                 let ts = chrono::Local::now().format("%H:%M:%S");
-                self.logs.push(format!(
-                    "[{}] [{}] {}: {}",
-                    ts,
-                    level.as_str(),
-                    source,
-                    message
-                ));
-
-                if self.logs.len() > 200 {
-                    self.logs.drain(..50);
-                }
+                let log_line = format!("[{}] [{}] {}: {}", ts, level.as_str(), source, message);
+                self.push_log(log_line);
             }
             BackendEvent::Error { code, message } => {
                 self.popup = Popup::Error(format!("[{}] {}", code, message));
@@ -516,6 +507,12 @@ impl App {
         self.prev_rx_bytes = metrics.bytes_rx;
         self.prev_tx_bytes = metrics.bytes_tx;
         self.last_metrics_tick = Some(now);
+    }
+    pub fn push_log(&mut self, msg: String) {
+        self.logs.push(msg);
+        if self.logs.len() > 200 {
+            self.logs.remove(0);
+        }
     }
 }
 use crate::backend::backend::BackendEvent;

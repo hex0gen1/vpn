@@ -421,3 +421,7 @@
 2026-05-03T06:18:07.304442Z DEBUG crates/vpn-tui/src/main.rs:410: DEBUG test message
 2026-05-03T06:18:07.312625Z  INFO crates/vpn-tui/src/main.rs:227: Local test server spawned on 127.0.0.1:11949
 2026-05-03T06:18:07.312823Z  INFO crates/vpn-tui/src/main.rs:245: Server listening on 127.0.0.1:11949
+2026-05-06T11:22:57.964895Z  INFO crates/vpn-tui/src/main.rs:409: Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/vpn-debug.log
+2026-05-06T11:22:57.965289Z DEBUG crates/vpn-tui/src/main.rs:410: DEBUG test message
+2026-05-06T11:22:57.973833Z  INFO crates/vpn-tui/src/main.rs:227: Local test server spawned on 127.0.0.1:11949
+2026-05-06T11:22:57.973995Z  INFO crates/vpn-tui/src/main.rs:245: Server listening on 127.0.0.1:11949
