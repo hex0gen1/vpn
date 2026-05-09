@@ -2,6 +2,9 @@ XTVPN is a high-performance, transport-agnostic Layer 3 VPN framework written in
 It features custom binary framing, AEAD encryption with replay protection, async I/O via tokio, and seamless integration with advanced obfuscation
 layers (VLESS+TLS, Reality via sing-box sidecar).
 
+* better to read in edit mode
+
+
 # ARCHITECTURE OVERALL
 1. Client/Server connection through mpsc, watcher channels.
 2. TUN bridge (async fd <-> mpsc).
