@@ -58,7 +58,7 @@ async fn handle_key_event(app: &mut App, key: crossterm::event::KeyEvent, handle
             app.screen = Screen::Parser;
             app.mode = Mode::Input;
         }
-        (_, _, KeyCode::Char('q')) => {
+        (Mode::Normal, _, KeyCode::Char('q')) => {
             app.popup = Popup::ConfirmQuit;
             app.mode = Mode::Popup(Popup::ConfirmQuit);
         }
@@ -77,6 +77,16 @@ async fn handle_key_event(app: &mut App, key: crossterm::event::KeyEvent, handle
                         .cmd_tx
                         .try_send(UiCommand::AddProfile(profile.clone()));
                     app.profiles.push(profile.clone());
+                    let _ = vpn_daemon::parser::parse_vless::save_profile(
+                        &profile,
+                        &profile.clone().tag.unwrap(),
+                    )
+                    .map_err(|e| {
+                        format!(
+                            "Failed to load profile: {:?} with error {} ",
+                            profile.tag, e
+                        )
+                    });
                     app.mode = Mode::Normal;
                     tracing::info!("Added profile : {:?}", Some(profile.tag))
                 }
@@ -199,7 +209,7 @@ async fn main() -> Result<()> {
     let mut terminal = ratatui::init();
     terminal.clear()?;
     let mut app = app::App::new();
-    let (fd, name) = tun::create_interface("tun5")?;
+    let (fd, name) = tun::create_interface("xtvpn0")?;
     let subnet = std::net::Ipv4Addr::new(10, 8, 0, 0);
     std::process::Command::new("ip")
         .args(["link", "set", "dev", &name, "up"])
@@ -216,14 +226,13 @@ async fn main() -> Result<()> {
     let tun = std::sync::Arc::new(tokio::sync::Mutex::new(
         vpn_daemon::linux::tun::TunInterface::new(fd, name)?,
     ));
-    let tun_tun = tun.clone();
     let crypto = vpn_daemon::transport::server::generate_crypto_state()?;
     let cryptoo = crypto.clone();
-    tokio::spawn(async move {
-        if let Err(e) = run_local_server("127.0.0.1:11949", tun_tun, crypto).await {
-            tracing::error!("Test server crashed: {}", e);
-        }
-    });
+    //tokio::spawn(async move {
+    //    if let Err(e) = run_local_server("127.0.0.1:11949", tun_tun, crypto).await {
+    //        tracing::error!("Test server crashed: {}", e);
+    //    }
+    //});
     tracing::info!("Local test server spawned on 127.0.0.1:11949");
     let _server_state = std::sync::Arc::new(server::ServerState::new(subnet, 254));
     let (backend, handle) = Backend::new(cfg, tun, cryptoo);
@@ -369,11 +378,9 @@ fn emulate_icmp_reply(payload: &[u8]) -> Option<Vec<u8>> {
     reply[ip_header_len + 2] = (icmp_sum >> 8) as u8;
     reply[ip_header_len + 3] = icmp_sum as u8;
 
-    // 3. Меняем src/dst IP-адреса местами
     reply[12..16].copy_from_slice(&payload[16..20]);
     reply[16..20].copy_from_slice(&payload[12..16]);
 
-    // 4. Пересчитываем IP-чексумму
     reply[10] = 0;
     reply[11] = 0;
     let ip_sum = calculate_checksum(&reply[0..ip_header_len]);

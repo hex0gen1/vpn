@@ -44,6 +44,17 @@ pub enum FrameKind {
     HELLOACK = 4,
     KEEPALIVE = 5,
 }
+impl FrameKind {
+    pub fn as_str(&self) -> String {
+        match self {
+            FrameKind::HELLO => "HELLO".to_string(),
+            FrameKind::ERROR => "ERROR".to_string(),
+            FrameKind::DATA => "DATA".to_string(),
+            FrameKind::KEEPALIVE => "KEEPALIVE".to_string(),
+            FrameKind::HELLOACK => "HELLOACK".to_string(),
+        }
+    }
+}
 pub fn encode_frame(kind: FrameKind, session_id: u64, payload: &[u8]) -> Vec<u8> {
     let session_en = session_id.to_be_bytes();
     let mut payload_en = Vec::new();

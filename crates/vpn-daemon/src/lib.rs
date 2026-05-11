@@ -3,6 +3,7 @@ pub mod daemon;
 //mod ipc;
 pub mod linux;
 pub mod parser;
+pub mod server_loop;
 pub mod stats;
 pub mod tests;
 pub mod transport;

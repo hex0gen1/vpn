@@ -55,6 +55,7 @@ pub enum Transport {
     Other(String),
     Quic,
     Auto,
+    VlessTls,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -115,14 +116,15 @@ impl Security {
 impl Transport {
     pub fn as_str(&self) -> String {
         match self {
-            Transport::Tcp => String::from("Tcp"),
-            Transport::Udp => String::from("Udp"),
-            Transport::TcpUdp => String::from("Tcp+Udp"),
+            Transport::Tcp => String::from("tcp"),
+            Transport::Udp => String::from("udp"),
+            Transport::TcpUdp => String::from("tcp+udp"),
             Transport::Ws => String::from("Wireshark"),
             Transport::Grpc => String::from("Grpc"),
             Transport::Quic => String::from("Quic"),
             Transport::Other(text) => String::from(text),
             Transport::Auto => String::from("Auto"),
+            Transport::VlessTls => String::from("VlessTls"),
         }
     }
 }

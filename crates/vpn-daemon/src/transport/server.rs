@@ -9,8 +9,12 @@ use std::net::Ipv4Addr;
 use std::sync::{Arc, Mutex};
 use tokio::net::UdpSocket;
 use tokio::sync::mpsc;
-use vpn_types::VpnProfile;
+use vpn_types::{
+    VpnProfile,
+    error::{ErrorLevel, VpnError},
+};
 extern crate scopeguard;
+use tokio::io::{AsyncRead, AsyncWrite};
 use tracing::{info, warn};
 pub async fn bind_server(config: ServerNetworkConfig) -> std::io::Result<UdpSocket> {
     let addr = std::net::SocketAddr::new(config.server_addr, config.server_port);
@@ -22,6 +26,61 @@ pub async fn bind_token(profile: VpnProfile) -> Token {
     token.fill_token_vless(&profile);
     token
 }
+pub trait AsyncServerTransport: Unpin + Send + 'static {
+    fn peer_addr(&self) -> std::net::SocketAddr;
+    fn current_transport(&self) -> &'static str;
+    async fn recv_frame(&mut self, buf: &mut [u8]) -> std::io::Result<usize>;
+    async fn send_frame(&mut self, buf: &[u8]) -> std::io::Result<usize>;
+}
+pub struct UdpTransport {
+    socket: tokio::net::UdpSocket,
+    peer: std::net::SocketAddr,
+}
+impl AsyncServerTransport for UdpTransport {
+    fn peer_addr(&self) -> std::net::SocketAddr {
+        self.peer
+    }
+    fn current_transport(&self) -> &'static str {
+        "udp"
+    }
+    async fn recv_frame(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let socket = &self.socket;
+        let len = socket.recv(buf).await?;
+        Ok(len)
+    }
+    async fn send_frame(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let socket = &self.socket;
+        let len = socket.send(buf).await?;
+        Ok(len)
+    }
+}
+impl AsyncServerTransport for TcpTransport {
+    fn peer_addr(&self) -> std::net::SocketAddr {
+        self.peer
+    }
+    fn current_transport(&self) -> &'static str {
+        "tcp"
+    }
+    async fn recv_frame(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let mut len = [0u8; 4];
+        self.stream.read_exact(&mut len).await?;
+        let frame_len = u32::from_be_bytes(len) as usize;
+        if frame_len == 0 || frame_len > buf.len() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Too large frame.",
+            ));
+        }
+        self.stream.read_exact(&mut buf[..frame_len]).await?;
+        Ok(frame_len)
+    }
+    async fn send_frame(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let len = buf.len() as u32;
+        self.stream.write_all(&len.to_be_bytes()).await?;
+        self.stream.write_all(buf).await?;
+        Ok(buf.len())
+    }
+}
 #[derive(Clone, Debug)]
 pub struct Peer {
     pub user_ip: Ipv4Addr,
@@ -30,6 +89,11 @@ pub struct Peer {
     pub crypto: Arc<CryptoState>,
     pub user_id: String,
     pub session_id: u64,
+    pub tx_reply: Option<mpsc::Sender<Vec<u8>>>,
+}
+pub struct TcpTransport {
+    stream: tokio::net::TcpStream,
+    peer: std::net::SocketAddr,
 }
 impl Peer {
     pub fn new(
@@ -40,13 +104,15 @@ impl Peer {
         user_id_rx: String,
         session_id: u64,
     ) -> Self {
+        let (tx_send, _) = mpsc::channel(2048);
         Self {
             user_ip: ip,
             public_socket: sock,
             last_seen: time,
             crypto: crypto_cx,
             user_id: user_id_rx,
-            session_id: session_id,
+            session_id,
+            tx_reply: Some(tx_send),
         }
     }
 }
@@ -142,6 +208,7 @@ impl TrafficCounters {
 pub struct ServerState {
     pub allocator: TokioMutex<IpAllocator>,
     pub peers: TokioMutex<peers_table>,
+    pub server_crypto: Arc<CryptoState>,
 }
 pub fn generate_session_id() -> u64 {
     let mut bytes = [0u8; 8];
@@ -175,7 +242,7 @@ impl ServerState {
         self.peers.lock().await.insert(peer);
         Some(ip)
     }
-    pub async fn disconnect_peer(&mut self, socket: std::net::SocketAddr) -> bool {
+    pub async fn disconnect_peer(&self, socket: std::net::SocketAddr) -> bool {
         let mut peers = self.peers.lock().await;
         if let Some(peer) = peers.remove(&socket) {
             self.allocator.lock().await.release(peer.user_ip);
@@ -185,9 +252,13 @@ impl ServerState {
         }
     }
     pub fn new(subnet: Ipv4Addr, pool_size: u32) -> Self {
+        let state = generate_crypto_state()
+            .map_err(|e| VpnError::CryptoError(e.to_string()))
+            .unwrap();
         Self {
             allocator: tokio::sync::Mutex::new(IpAllocator::new(subnet, pool_size)),
             peers: tokio::sync::Mutex::new(peers_table::new()),
+            server_crypto: state,
         }
     }
     pub async fn peer_count(&self) -> usize {
@@ -245,31 +316,119 @@ impl peers_table {
         self.by_user_id.get(id).cloned()
     }
 }
-pub async fn handle_hello(
+use tokio::io::AsyncReadExt;
+pub async fn handle_hello_udp(
     socket: &UdpSocket,
     server_token: &Token,
-    mut peers: std::sync::Arc<TokioMutex<peers_table>>,
-    allocator: &Arc<tokio::sync::Mutex<IpAllocator>>,
+    peers: Arc<TokioMutex<peers_table>>,
     state: &Arc<ServerState>,
-    crypto: Arc<CryptoState>,
-) -> Result<(), HelloAckError> {
+) -> Result<(Arc<Peer>, Arc<CryptoState>), HelloAckError> {
     let mut buf = vec![0u8; 2048];
-    let (res, peer_adress) = socket.recv_from(&mut buf).await?;
-    let ready = decode_frame(&buf[..res])?;
-    if ready.kind != FrameKind::HELLO {
-        return Err(HelloAckError::UnexpectedKind(ready.kind));
+    let (len, peer_addr) = socket
+        .recv_from(&mut buf)
+        .await
+        .map_err(HelloAckError::Io)?;
+
+    let frame = decode_frame(&buf[..len])?;
+    if frame.kind != FrameKind::HELLO {
+        return Err(HelloAckError::UnexpectedKind(frame.kind));
     }
-    let payload_token =
-        std::str::from_utf8(&ready.payload).map_err(|c| HelloAckError::InvalidTokenEncoding)?;
-    if payload_token != server_token.token {
-        return Err(HelloAckError::TokenMismatch(payload_token.to_string()));
+
+    let token_str =
+        std::str::from_utf8(&frame.payload).map_err(|_| HelloAckError::InvalidTokenEncoding)?;
+    if token_str != server_token.token {
+        return Err(HelloAckError::TokenMismatch(token_str.to_string()));
     }
-    let user_id = payload_token.to_string();
-    state.connect_peer(peer_adress, user_id);
-    send_helloack(socket, peer_adress, peers, crypto);
+
+    let user_id = token_str.to_string();
+    let ip = state
+        .connect_peer(peer_addr, user_id.clone())
+        .await
+        .ok_or(HelloAckError::IpPoolExhausted)?;
+
+    let crypto = generate_crypto_state()?;
+    let peer = state
+        .peers
+        .lock()
+        .await
+        .get_by_addr(&peer_addr)
+        .clone()
+        .ok_or(HelloAckError::PeerNotFound)?;
+
+    // Отправка ответа
+    send_helloack(socket, peer_addr, peers, crypto.clone()).await?;
+    Ok((peer, crypto))
+}
+pub async fn handle_hello_tcp(
+    stream: &mut tokio::net::TcpStream,
+    peers: Arc<TokioMutex<peers_table>>,
+    state: Arc<ServerState>,
+    server_token: &Token,
+    crypto: &CryptoState,
+    peer_addr: std::net::SocketAddr,
+) -> Result<(Arc<Peer>, Arc<CryptoState>), VpnError> {
+    let mut len_buf = [0u8; 4];
+    stream
+        .read_exact(len_buf.as_mut_slice())
+        .await
+        .map_err(|e| VpnError::Io(e));
+    let frame_len = u32::from_be_bytes(len_buf) as usize;
+    if frame_len > 65536 {
+        return Err(VpnError::FrameTooLarge(frame_len.to_string()));
+    }
+
+    let mut encrypted = vec![0u8; frame_len];
+    stream
+        .read_exact(&mut encrypted)
+        .await
+        .map_err(|e| VpnError::Io(e));
+
+    let mut plaintext =
+        decrypt_frame_sync(&encrypted, crypto).map_err(|e| VpnError::CryptoError(e.to_string()))?;
+    let frame = decode_frame(&mut plaintext).unwrap();
+    if frame.kind != FrameKind::HELLO {
+        return Err(VpnError::InvalidFrame(frame.kind.as_str()));
+    }
+
+    let token_str =
+        std::str::from_utf8(&frame.payload).map_err(|e| VpnError::CryptoError(e.to_string()))?;
+    if token_str != server_token.token {
+        return Err(VpnError::CryptoError(token_str.to_string()));
+    }
+
+    let user_id = token_str.to_string();
+    let ip = state
+        .connect_peer(peer_addr, user_id.clone())
+        .await
+        .ok_or(VpnError::Timeout)?;
+
+    let crypto = generate_crypto_state().map_err(|e| VpnError::CryptoError(e.to_string()))?;
+    let peer = state
+        .peers
+        .lock()
+        .await
+        .get_by_addr(&peer_addr)
+        .ok_or(VpnError::Timeout)?;
+
+    send_helloack_tcp(stream, &peer, crypto.clone()).await?;
+    Ok((peer, crypto))
+}
+pub async fn send_helloack_tcp(
+    stream: &mut tokio::net::TcpStream,
+    peer: &Arc<Peer>,
+    crypto: Arc<CryptoState>,
+) -> Result<(), std::io::Error> {
+    let mut frame = encode_frame(FrameKind::HELLOACK, peer.session_id, &[]);
+    let encrypted = encrypt_frame(&mut frame, crypto)
+        .await
+        .map_err(|e| VpnError::CryptoError(e.to_string()))
+        .unwrap();
+    let len = encrypted.len() as u32;
+    stream.write_all(&len.to_be_bytes()).await?;
+    stream.write_all(&encrypted).await?;
+    stream.flush().await?;
     Ok(())
 }
-
 pub fn generate_crypto_state() -> std::io::Result<Arc<CryptoState>> {
     let mut key = [0u8; 32];
     getrandom::fill(&mut key);
@@ -313,6 +472,66 @@ use aead::{Aead, Key, KeyInit};
 use aes_gcm::{Aes256Gcm, Nonce};
 use getrandom::fill;
 type AesCipher = Aes256Gcm;
+pub async fn run_tcp_listener(
+    addr: std::net::SocketAddr,
+    state: Arc<ServerState>,
+    tx_to_tun: mpsc::Sender<Vec<u8>>,
+    traffic: Arc<TrafficCounters>,
+) -> anyhow::Result<()> {
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    info!("TCP server listening on {}", addr);
+
+    loop {
+        let (stream, peer_addr) = listener.accept().await?;
+        let state = state.clone();
+        let tun = tx_to_tun.clone();
+        let traffic = traffic.clone();
+
+        tokio::spawn(async move {
+            if let Err(e) = handle_tcp_peer(stream, peer_addr, state, tun, traffic).await {
+                warn!("TCP peer {} error: {}", peer_addr, e);
+            }
+        });
+    }
+}
+use tokio::io::AsyncWriteExt;
+async fn handle_tcp_peer(
+    mut stream: tokio::net::TcpStream,
+    peer_addr: std::net::SocketAddr,
+    state: Arc<ServerState>,
+    tx_to_tun: mpsc::Sender<Vec<u8>>,
+    traffic: Arc<TrafficCounters>,
+) -> anyhow::Result<()> {
+    let mut len_buf = [0u8; 4];
+    stream.read_exact(&mut len_buf).await?;
+    let len = u32::from_be_bytes(len_buf) as usize;
+    let mut buf = vec![0u8; len];
+    stream.read_exact(&mut buf).await?;
+
+    let frame = decode_frame(&buf).unwrap();
+    let session_id = frame.session_id;
+    let token = std::str::from_utf8(&frame.payload)?;
+    let user_id = token.to_string();
+    let ip = state.connect_peer(peer_addr, user_id).await.unwrap();
+    let crypto = generate_crypto_state()?;
+
+    let ack_frame = encode_frame(FrameKind::HELLOACK, session_id, &[]);
+    let encrypted = encrypt_frame(&ack_frame, crypto.clone()).await?;
+    let ack_len = encrypted.len() as u32;
+    stream.write_all(&ack_len.to_be_bytes()).await?;
+    stream.write_all(&encrypted).await?;
+    handle_data_loop_tcp(
+        stream,
+        peer_addr,
+        ip,
+        crypto,
+        state,
+        tx_to_tun,
+        traffic,
+        tokio_util::sync::CancellationToken::new(),
+    )
+    .await
+}
 pub fn encrypt_frame_deprecated(
     frame: Vec<u8>,
     key: &[u8; 32],
@@ -433,9 +652,9 @@ pub async fn handle_data_loop(
 ) {
     let mut raw_buf = vec![0u8; 2048];
     let idle_timeout = std::time::Duration::from_secs(120);
-    if let peer = peers.lock().await {
-        peer.by_user_public_socket.get(&peer_addr);
-    }
+    //if let peer = peers.lock().await {
+    //    peer.by_user_public_socket.get(&peer_addr);
+    //}
 
     loop {
         tokio::select! {
@@ -507,9 +726,118 @@ pub async fn handle_data_loop(
         info!("Peer {} already removed from the table.", peer_addr)
     }
 }
+async fn read_tcp_frame(
+    stream: &mut tokio::net::TcpStream,
+    buf: &mut [u8],
+) -> std::io::Result<usize> {
+    // 1. Читаем ровно 4 байта длины
+    let mut len_buf = [0u8; 4];
+    stream.read_exact(&mut len_buf).await?;
+    let frame_len = u32::from_be_bytes(len_buf) as usize;
+
+    // 2. Защита от OOM / DoS
+    if frame_len == 0 || frame_len > buf.len() {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            "Frame too large or malformed",
+        ));
+    }
+
+    // 3. Читаем ровно payload
+    stream.read_exact(&mut buf[..frame_len]).await?;
+    Ok(frame_len)
+}
+pub async fn handle_data_loop_tcp(
+    mut stream: tokio::net::TcpStream,
+    peer_addr: std::net::SocketAddr,
+    assigned_ip: Ipv4Addr,
+    crypto: Arc<crate::transport::frame::CryptoState>,
+    state: Arc<ServerState>,
+    tx_to_tun: mpsc::Sender<Vec<u8>>,
+    traffic: Arc<TrafficCounters>,
+    cancel: tokio_util::sync::CancellationToken,
+) -> anyhow::Result<()> {
+    let mut buf = vec![0u8; 65536];
+    let idle_timeout = std::time::Duration::from_secs(120);
+
+    tracing::info!(
+        "TCP data loop started for {} (IP: {})",
+        peer_addr,
+        assigned_ip
+    );
+
+    loop {
+        tokio::select! {
+            _ = cancel.cancelled() => {
+                tracing::info!("TCP data loop cancelled for {}", peer_addr);
+                break;
+            }
+
+            // Чтение одного полного фрейма с таймаутом простоя
+            res = tokio::time::timeout(idle_timeout, read_tcp_frame(&mut stream, &mut buf)) => {
+                match res {
+                    Ok(Ok(frame_len)) => {
+                        traffic.add_rx(frame_len as u64);
+
+                        // 1. Расшифровка
+                        let plaintext = match decrypt_frame(&buf[..frame_len], crypto.clone()).await {
+                            Ok(p) => p,
+                            Err(e) => { tracing::warn!("Decrypt failed for {}: {}", peer_addr, e); continue; }
+                        };
+
+                        // 2. Декодирование фрейма
+                        let frame = match decode_frame(&plaintext) {
+                            Ok(f) => f,
+                            Err(e) => { tracing::warn!("Decode failed for {}: {:?}", peer_addr, e); continue; }
+                        };
+
+                        // 3. Фильтр: обрабатываем только DATA
+                        if frame.kind != FrameKind::DATA {
+                            continue;
+                        }
+
+                        // 4. Анти-спуфинг: проверяем, что src_ip == выданный IP
+                        let pkt_src = match parse_ipv4_src(&frame.payload) {
+                            Some(ip) => ip,
+                            None => { tracing::warn!("Malformed/non-IPv4 packet from {}", peer_addr); continue; }
+                        };
+                        if pkt_src != assigned_ip {
+                            tracing::warn!("SPOOFING DETECTED from {}! Expected {}, got {}", peer_addr, assigned_ip, pkt_src);
+                            break; // Принудительный разрыв
+                        }
+
+                        // 5. Отправка в TUN (для маршрутизации в интернет)
+                        if tx_to_tun.send(frame.payload).await.is_err() {
+                            tracing::info!("TUN channel closed, stopping {}", peer_addr);
+                            break;
+                        }
+                    }
+
+                    Ok(Err(e)) => {
+                        tracing::warn!("TCP read error for {}: {}", peer_addr, e);
+                        break;
+                    }
+
+                    Err(_) => {
+                        tracing::warn!("Idle timeout for {} ({}s)", peer_addr, idle_timeout.as_secs());
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    if state.disconnect_peer(peer_addr).await {
+        tracing::info!(
+            "Peer {} disconnected, IP {} released to pool.",
+            peer_addr,
+            assigned_ip
+        );
+    }
+    Ok(())
+}
 pub async fn tun_write_all(
     mut rx: tokio::sync::mpsc::Receiver<Vec<u8>>,
-    tun: Arc<std::sync::Mutex<TunInterface>>,
+    tun: Arc<tokio::sync::Mutex<TunInterface>>,
     cancel: tokio_util::sync::CancellationToken,
 ) {
     loop {
@@ -522,10 +850,9 @@ pub async fn tun_write_all(
                 Some(mut packet) => {
                     let tun_arc = tun.clone();
 
-                    tokio::task::spawn_blocking(move || {
+                    tokio::task::spawn_blocking(move|| {
                             let guard = tun_arc
-                            .lock()
-                            .expect("Tun poisoned");
+                            .blocking_lock();
                         guard.write_packet(packet.as_mut_slice());
                     }).await.unwrap_or_else(|e| tracing::error!("Tun write panicked {}", e));
                 }
@@ -559,21 +886,20 @@ fn parse_ipv4_dst(buf: &[u8]) -> Option<std::net::Ipv4Addr> {
     }
 }
 pub async fn tun_reader_loop(
-    tun: Arc<TunInterface>,
-    peers: Arc<TokioMutex<peers_table>>,
+    tun: Arc<TokioMutex<TunInterface>>,
+    //peers: Arc<TokioMutex<peers_table>>,
+    state: Arc<ServerState>,
     socket: tokio::net::UdpSocket,
     cancel: tokio_util::sync::CancellationToken,
-    state: Arc<std::sync::Mutex<ServerState>>,
     traffic: Arc<TrafficCounters>,
 ) {
     let mut buf = vec![0u8; 1500];
     info!("TUN reader started");
-
+    let guard = tun.lock().await;
     loop {
         tokio::select! {
             _ = cancel.cancelled() => break,
-
-            res = tun.read_packet(&mut buf) => {
+            res = guard.read_packet(&mut buf) => {
                 let n = match res {
                     Ok(len) => match len{
                         0 => {
@@ -601,23 +927,52 @@ pub async fn tun_reader_loop(
                 };
 
                 let (peer_crypto, peer_addr, peer) = {
-                    match peers.lock().await.get_by_ip(&dst_ip) {
+                    match state.peers.lock().await.get_by_ip(&dst_ip) {
                         Some(p) => (p.crypto.clone(), p.public_socket, p),
                         None => continue,
                     }
                 };
 
                 let frame = encode_frame(FrameKind::DATA, peer.session_id, raw_ip);
-                let encrypted = match encrypt_frame(&frame, peer_crypto).await {
-                    Ok(e) => {
-                        traffic.add_tx(e.len() as u64);
-                        e
+                let encrypted = encrypt_frame(&frame, peer_crypto).await.unwrap();
+                match encrypted {
+                    enc => {
+                        traffic.add_tx(enc.len() as u64);
+                        //Отправляем через канал, если это TCP-пир
+                        if let Some(tx) = &peer.tx_reply {
+                            let _ = tx.send(enc).await;
+                        } else {
+                        //Или через UDP-сокет
+                            let _ = socket.send_to(&enc, peer_addr).await;
+                        }
                     }
-                    Err(_) => continue,
-                };
+                }
 
-                let _ = socket.send_to(&encrypted, peer_addr).await;
+
             }
         }
+    }
+}
+pub async fn run_tcp_server(
+    listen_addr: std::net::SocketAddr,
+    state: Arc<ServerState>,
+    tx_to_tun: mpsc::Sender<Vec<u8>>,
+    traffic: Arc<TrafficCounters>,
+) -> anyhow::Result<()> {
+    let listener = tokio::net::TcpListener::bind(listen_addr).await?;
+    info!("TCP server listening on {}", listen_addr);
+
+    loop {
+        let (stream, peer_addr) = listener.accept().await?;
+        stream.set_nodelay(true)?;
+        let tun = tx_to_tun.clone();
+        let state = state.clone();
+        let traffic = traffic.clone();
+
+        tokio::spawn(async move {
+            if let Err(e) = handle_tcp_peer(stream, peer_addr, state, tun, traffic).await {
+                warn!("TCP peer {} error: {}", peer_addr, e);
+            }
+        });
     }
 }

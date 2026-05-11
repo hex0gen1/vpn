@@ -12,8 +12,8 @@ use vpn_daemon::transport::{
     frame::encode_frame,
     transport::{ActiveTransport, AsyncTransport},
 };
-use vpn_types::VpnProfile;
 use vpn_types::error::ErrorLevel;
+use vpn_types::{Security, VpnProfile};
 //backend struct for tui -> backend communication
 #[derive(Debug, Clone)]
 pub enum UiCommand {
@@ -502,6 +502,7 @@ pub struct ClientContext {
     pub rx_from_tun: tokio::sync::mpsc::Receiver<Vec<u8>>,
     pub cancel: tokio_util::sync::CancellationToken,
 }
+use vpn_daemon::transport::singbox::socks5_connect;
 async fn establish_connection(
     profile: VpnProfile,
     server_addr: SocketAddr,
@@ -511,13 +512,55 @@ async fn establish_connection(
     tun: Arc<tokio::sync::Mutex<TunInterface>>,
     crypto: Arc<vpn_daemon::transport::frame::CryptoState>,
 ) -> anyhow::Result<()> {
-    let mut transport = ActiveTransport::connect(
-        &profile.host,
-        profile.port,
-        vpn_types::Transport::Auto,
-        std::time::Duration::from_secs(10),
-    )
-    .await?;
+    let transport = match profile.security {
+        Some(Security::Reality) => {
+            let pbk = profile
+                .clone()
+                .pbk
+                .ok_or("Missing pbk for reality transport")
+                .unwrap();
+            let sid = profile
+                .clone()
+                .sid
+                .ok_or("Missing short id for reality transport")
+                .unwrap();
+            let sni = profile
+                .clone()
+                .sni
+                .ok_or("Missing sni for reality transport")
+                .unwrap();
+            let fp = profile
+                .clone()
+                .fp
+                .ok_or("Missing fingerprint for reality transport")
+                .unwrap();
+            let stream = vpn_daemon::transport::transport::RealityTransport::connect(
+                &profile.host,
+                profile.port,
+                &profile.uuid,
+                sni.as_ref(),
+                pbk.as_ref(),
+                sid.as_ref(),
+                fp.as_ref(),
+                profile.clone().transport.unwrap(),
+            )
+            .await?;
+            let tunnel = stream.stream;
+            ActiveTransport::Tcp { stream: tunnel }
+        }
+        _ => {
+            tracing::info!("Establishing standart VLESS/Tls connection.");
+            ActiveTransport::connect(
+                &profile.host,
+                profile.port,
+                vpn_types::Transport::VlessTls,
+                std::time::Duration::from_secs(10),
+                Some(&profile.uuid),
+                profile.clone().sni,
+            )
+            .await?
+        }
+    };
     tracing::info!("Connected via {}", transport.transport_type());
     let session_id = generate_session_id();
 
@@ -535,6 +578,7 @@ async fn establish_connection(
         cancel: cancel.clone(),
     };
     client_handshake(&mut ctx).await?;
+    tracing::debug!("XTVPN handshake completed! session_id:{}", session_id);
     let tunn = tun.clone();
     let guard = tunn.lock().await;
     let tun_name = guard.name();
@@ -553,9 +597,9 @@ async fn establish_connection(
 async fn client_handshake(ctx: &mut ClientContext) -> anyhow::Result<()> {
     let token = ctx.profile.uuid.as_bytes();
     let hello = encode_frame(FrameKind::HELLO, ctx.session_id, token);
-    let encrypted = encrypt_frame(&hello, ctx.crypto.clone()).await?;
+    let mut encrypted = encrypt_frame(&hello, ctx.crypto.clone()).await?;
 
-    ctx.transport.send_frame(&encrypted).await?;
+    ctx.transport.send_frame(&mut encrypted).await?;
 
     let mut buf = vec![0u8; 2048];
     let len = tokio::time::timeout(
@@ -580,7 +624,7 @@ pub fn generate_session_id() -> u64 {
 }
 use vpn_daemon::transport::server::{decrypt_frame, encrypt_frame};
 async fn client_data_loop(ctx: ClientContext) {
-    let mut buf = vec![0u8; 1500];
+    let mut buf = vec![0u8; 65536];
     let mut rx = ctx.rx_from_tun;
     let tx_to_tun = ctx.tx_to_tun;
     let mut transport = ctx.transport;
@@ -607,8 +651,8 @@ async fn client_data_loop(ctx: ClientContext) {
             Some(packet) = rx.recv() => {
                 let frame = encode_frame(FrameKind::DATA, ctx.session_id, &packet);
                 match encrypt_frame(&frame, crypto.clone()).await {
-                    Ok(encrypted) => {
-                        let _ = transport.send_frame(&encrypted).await;
+                    Ok(mut encrypted) => {
+                        let _ = transport.send_frame(&mut encrypted).await;
                     }
                     Err(_) => continue,
                 }

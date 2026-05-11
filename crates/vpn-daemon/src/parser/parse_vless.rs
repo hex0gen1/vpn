@@ -54,3 +54,66 @@ pub fn parse_vless_link(link: &str) -> Result<VpnProfile> {
         tag: url.fragment().map(String::from),
     })
 }
+
+fn config_dir() -> Result<std::path::PathBuf> {
+    let dirs = directories::ProjectDirs::from("com", "xtvpn", "xtvpn-client")
+        .context("Cannot identificate config directory")?;
+    let path = dirs.config_dir().to_path_buf();
+    std::fs::create_dir_all(&path).with_context(|| {
+        format!(
+            "Couldn't create a directory
+        : {}",
+            path.display()
+        )
+    })?;
+    Ok(path)
+}
+fn sanitize_tag(tag: &str) -> String {
+    tag.replace(|c: char| !c.is_alphanumeric() && c != '-' && c != '_', "_")
+        .trim()
+        .to_string()
+}
+pub fn save_profile(profile: &VpnProfile, tag: &str) -> Result<std::path::PathBuf> {
+    if tag.trim().is_empty() {
+        bail!("Profile tag cannot  be empty.");
+    }
+    let dir = config_dir()?;
+    let filename = format!("{}.toml", sanitize_tag(tag));
+    let path = dir.join(&filename);
+
+    let content = toml::to_string_pretty(profile).context("Error with serialization")?;
+    std::fs::write(&path, content)
+        .with_context(|| format!("Couldn't read file : {}", path.display()))?;
+
+    Ok(path)
+}
+pub fn load_profile(tag: &str) -> Result<VpnProfile> {
+    let dir = config_dir()?;
+    let filename = format!("{}.toml", sanitize_tag(tag));
+    let path = dir.join(&filename);
+
+    if !path.exists() {
+        bail!("profile '{}' not found in  {}", tag, dir.display());
+    }
+
+    let content = std::fs::read_to_string(&path)
+        .with_context(|| format!("Couldnt read file: {}", path.display()))?;
+    let profile: VpnProfile = toml::from_str(&content).context("TOML serialization error")?;
+    Ok(profile)
+}
+pub fn list_profiles() -> Result<Vec<std::path::PathBuf>> {
+    let dir = config_dir()?;
+    let mut files = Vec::new();
+
+    if dir.exists() {
+        for entry in std::fs::read_dir(&dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.extension().map_or(false, |ext| ext == "toml") {
+                files.push(path);
+            }
+        }
+    }
+    files.sort();
+    Ok(files)
+}

@@ -1,10 +1,19 @@
-use crate::transport::frame::{DecodeError, DecodedFrame, FrameKind, decode_frame, encode_frame};
+use crate::transport::frame::{DecodeError, FrameKind, decode_frame, encode_frame};
 use tokio::net::UdpSocket;
 use vpn_types::VpnProfile;
 #[derive(Debug)]
 pub struct Token {
     pub token: String,
 }
+
+impl Default for Token {
+    fn default() -> Self {
+        Self {
+            token: String::from(""),
+        }
+    }
+}
+
 impl Token {
     pub fn fill_token_vless(&mut self, profile: &VpnProfile) {
         self.token = profile.uuid.clone();
@@ -16,6 +25,11 @@ impl Token {
     }
     pub fn extract_user_id(&self) -> &str {
         &self.token
+    }
+    pub fn new_with(text: &'static str) -> Self {
+        Self {
+            token: text.to_string(),
+        }
     }
 }
 pub async fn connect_udp(server_addr: String) -> std::io::Result<tokio::net::UdpSocket> {
@@ -34,6 +48,7 @@ pub enum HelloAckError {
     TokenMismatch(String),
     InvalidTokenEncoding,
     IpPoolExhausted,
+    PeerNotFound,
 }
 
 impl From<std::io::Error> for HelloAckError {

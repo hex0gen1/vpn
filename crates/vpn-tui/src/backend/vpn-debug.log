@@ -1,0 +1,11 @@
+2026-05-07T11:11:12.412652Z  INFO crates/vpn-tui/src/main.rs:409: Logging initialized. File: /home/voice01/projects/vpn-project/crates/vpn-tui/src/backend/vpn-debug.log
+2026-05-07T11:11:12.412702Z DEBUG crates/vpn-tui/src/main.rs:410: DEBUG test message
+2026-05-07T11:11:12.422667Z  INFO crates/vpn-tui/src/main.rs:227: Local test server spawned on 127.0.0.1:11949
+2026-05-07T11:11:12.422735Z  INFO crates/vpn-tui/src/main.rs:245: Server listening on 127.0.0.1:11949
+2026-05-07T11:11:48.593487Z  INFO crates/vpn-tui/src/main.rs:81: Added profile : Some(Some("yokoshima-reality-wzwpzohgj"))
+2026-05-07T11:11:52.703548Z DEBUG crates/vpn-tui/src/backend/backend.rs:120: [HANDLE] Cmd sended.
+2026-05-07T11:11:52.703594Z DEBUG crates/vpn-tui/src/main.rs:97: Connect cmd sent to backend.
+2026-05-07T11:11:52.703589Z  INFO crates/vpn-tui/src/backend/backend.rs:188: [BACKEND] Handling connection command.
+2026-05-07T11:11:52.703617Z  INFO crates/vpn-tui/src/backend/backend.rs:195: [BACKEND] applying constructed dns.
+2026-05-07T11:11:52.706796Z DEBUG crates/vpn-tui/src/backend/backend.rs:234: [BACKEND] Attempting to start connection
+2026-05-07T11:11:52.706927Z  INFO crates/vpn-tui/src/backend/backend.rs:522: Connected via Using udp protocol for transport.
