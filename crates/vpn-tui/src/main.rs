@@ -112,6 +112,14 @@ async fn handle_key_event(app: &mut App, key: crossterm::event::KeyEvent, handle
                 tracing::warn!("Connect attempted but no profile selected.");
             }
         }
+        (Mode::Normal, Screen::Profiles, KeyCode::Char('d')) => {
+            if let Some(profile) = app.current_profile().clone() {
+                match handle.try_send_cmd(UiCommand::Disconnect) {
+                    Ok(_) => tracing::debug!("Disconnect cmd sended to backend"),
+                    Err(_) => tracing::debug!("Backend channel closed/full"),
+                }
+            }
+        }
         (Mode::Normal, Screen::Profiles, KeyCode::Delete) => {
             let idx = app.selected_profile;
             let _ = handle.cmd_tx.try_send(UiCommand::RemoveProfile(idx));
@@ -433,4 +441,51 @@ fn calculate_checksum(buf: &[u8]) -> u16 {
         sum = (sum >> 16) + (sum & 0xffff);
     }
     !(sum as u16)
+}
+use std::time::Duration;
+use tokio::fs;
+use vpn_daemon::transport::server::TrafficSnapshot;
+
+async fn read_tun_stats(tun_name: &str) -> Result<TrafficSnapshot> {
+    let base = format!("/sys/class/net/{}/statistics", tun_name);
+
+    let rx_bytes = fs::read_to_string(format!("{}/rx_bytes", base))
+        .await?
+        .trim()
+        .parse()?;
+    let tx_bytes = fs::read_to_string(format!("{}/tx_bytes", base))
+        .await?
+        .trim()
+        .parse()?;
+    let rx_packets = fs::read_to_string(format!("{}/rx_packets", base))
+        .await?
+        .trim()
+        .parse()?;
+    let tx_packets = fs::read_to_string(format!("{}/tx_packets", base))
+        .await?
+        .trim()
+        .parse()?;
+
+    Ok(TrafficSnapshot {
+        bytes_rx: rx_bytes,
+        bytes_tx: tx_bytes,
+        packets_rx: rx_packets,
+        packets_tx: tx_packets,
+    })
+}
+pub async fn metrics_poll_loop(app: &mut crate::App, tun_name: String) {
+    let mut interval = tokio::time::interval(Duration::from_secs(1));
+
+    loop {
+        interval.tick().await;
+
+        match read_tun_stats(&tun_name).await {
+            Ok(snapshot) => {
+                app.update_metrics(snapshot);
+            }
+            Err(e) => {
+                tracing::debug!("Metrics read failed for {}: {}", tun_name, e);
+            }
+        }
+    }
 }

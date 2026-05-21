@@ -22,18 +22,16 @@ async fn main() -> anyhow::Result<()> {
     let tcp_addr = "0.0.0.0:443".parse()?;
     let udp_addr: std::net::SocketAddr = "0.0.0.0:11949".parse()?;
     let subnet = "10.8.0.0".parse()?;
-    let server_token = Token::new_with("8d29950e-2fee-48df-b9d2-6475e929f01e");
+    let server_token = Token::new_with("57e8d456-e6aa-40f8-ac9c-174a8276aeac");
 
-    // Состояние
     let state = Arc::new(ServerState::new(subnet, 254));
 
     let traffic = Arc::new(TrafficCounters::new());
     let (owned_fd, name) = create_interface("xtvpn0")?;
     let tun = Arc::new(tokio::sync::Mutex::new(TunInterface::new(owned_fd, name)?));
-    // Каналы
+
     let (tx_to_tun, rx_to_tun) = mpsc::channel(1024);
 
-    // TUN reader (один на всех)
     let state_clone = state.clone();
     let traffic_clone = traffic.clone();
     let cancel_token_reader = tokio_util::sync::CancellationToken::new();
@@ -50,16 +48,37 @@ async fn main() -> anyhow::Result<()> {
             traffic_clone,
         )
         .await;
-    }); // tun_write_all ждёт std::sync::Mutex
+    });
     let tun_writer_handle = tokio::spawn(tun_write_all(rx_to_tun, tun_writer, cancel_token_writer));
-    // TCP сервер
     let tx_clone = tx_to_tun.clone();
     let traffic_tcp = traffic.clone();
     tokio::spawn(async move {
         run_tcp_server(tcp_addr, state, tx_clone, traffic_tcp).await;
     });
-
-    // Ждём сигнала
+    let db: sqlx::SqlitePool =
+        sqlx::SqlitePool::connect("sqlite:/home/voice01/projects/tgbot_python/xtvpn_bot.db")
+            .await?;
+    tokio::spawn(async {
+        let app = axum::Router::new()
+            .route(
+                "/api/v1/configs/generate",
+                axum::routing::post(vpn_daemon::daemon::link::generate_config),
+            )
+            .route(
+                "/api/v1/servers/add",
+                axum::routing::post(vpn_daemon::daemon::link::insert_server),
+            )
+            .route(
+                "/api/v1/servers/public",
+                axum::routing::get(vpn_daemon::daemon::link::list_public_servers),
+            )
+            .with_state(db);
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:8050")
+            .await
+            .expect("TcpListener failed to bind api port 8050");
+        tracing::info!("API listening on http://127.0.0.1:8050");
+        axum::serve(listener, app).await;
+    });
     tokio::signal::ctrl_c().await?;
     tracing::info!("Shutdown");
     Ok(())

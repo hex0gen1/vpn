@@ -299,6 +299,7 @@ fn render_header(
         .as_ref()
         .map(|p| format!(" | {}", p))
         .unwrap_or_default();
+
     let header_text = format!(
         "{}{} | {} | rx: {}/{} | tx: {}/{}",
         title,
@@ -307,7 +308,7 @@ fn render_header(
         app.rx_packets,
         app.rx_bytes,
         app.tx_packets,
-        app.tx_bytes
+        app.tx_bytes,
     );
 
     let header = Paragraph::new(header_text).block(
@@ -353,8 +354,8 @@ fn render_status_bar_old(
         SK::Success => (String::from("_SUCCESS_"), constants::COLOR_SUCCESS),
         SK::Warning => (String::from("WARNING!"), constants::COLOR_WARN),
     };
-    let rx = format!("Rx speed: {}", app.rx_bps);
-    let tx = format!("Tx speed: {}", app.tx_bytes);
+    let rx = format!("Rx speed: {}", 0);
+    let tx = format!("Tx speed: {}", 0);
 
     let style = app.status.sk.style();
     let prefix = app.status.sk.prefix();
@@ -389,11 +390,10 @@ fn render_status_bar(
         }
     }
 
-    let rx = fmt_bytes(backend.rx_bytes);
-    let tx = fmt_bytes(backend.tx_bytes);
+    let rx = fmt_bytes(app.rx_bytes);
+    let tx = fmt_bytes(app.tx_bytes);
     let peers = backend.peer_count;
     let uptime = backend.uptime_dur;
-
     let mut status_parts = vec![
         format!("▼{} ↑{}", rx, tx),
         format!("peers: {}", peers),

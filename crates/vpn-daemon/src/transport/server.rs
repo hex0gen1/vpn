@@ -4,6 +4,8 @@ use crate::linux::routing::{
 use crate::linux::tun::{TunFd, TunInterface, create_interface};
 use crate::transport::client::{HelloAckError, Token};
 use crate::transport::frame::{DecodeError, DecodedFrame, FrameKind, decode_frame, encode_frame};
+use hkdf::Hkdf;
+use sha2::Sha256;
 use std::collections::HashSet;
 use std::net::Ipv4Addr;
 use std::sync::{Arc, Mutex};
@@ -13,6 +15,7 @@ use vpn_types::{
     VpnProfile,
     error::{ErrorLevel, VpnError},
 };
+use x25519_dalek::{EphemeralSecret, PublicKey};
 extern crate scopeguard;
 use tokio::io::{AsyncRead, AsyncWrite};
 use tracing::{info, warn};
@@ -177,6 +180,16 @@ pub struct TrafficSnapshot {
     pub bytes_tx: u64,
     pub packets_rx: u64,
     pub packets_tx: u64,
+}
+impl TrafficSnapshot {
+    pub fn new() -> Self {
+        Self {
+            bytes_rx: 0,
+            bytes_tx: 0,
+            packets_rx: 0,
+            packets_tx: 0,
+        }
+    }
 }
 impl TrafficCounters {
     pub fn new() -> Self {

@@ -13,7 +13,6 @@ tracing-subscriber.workspace = true
 anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-lic = "0.4.0"
 libc = "0.2.185"
 nix = "0.31.2"
 tokio-util = "0.7.18"
@@ -28,10 +27,19 @@ url = "2.5.8"
 webpki-roots = "1.0.7"
 rustls = "0.23.40"
 tokio-rustls = "0.26.4"
-uuid = "1.23.1"
+uuid = {version = "1.23.1", features = ["v4"]}
 tempfile = "3.27.0"
 directories = "6.0.0"
 toml = "1.1.2"
 x25519-dalek = "2.0.1"
 hkdf = "0.13.0"
 sha2 = "0.11.0"
+axum = "0.8.9"
+sqlx = { version = "0.8.2", features = [
+    "sqlite",
+    "macros",
+    "migrate",
+    "runtime-tokio-rustls"
+]}
+chrono = "0.4.44"
+thiserror.workspace = true

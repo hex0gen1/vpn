@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT sub_expiry, trial_used FROM users WHERE tg_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "sub_expiry",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "trial_used",
+        "ordinal": 1,
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      true
+    ]
+  },
+  "hash": "636fc425039f0be3eef59288571b55aa8dd5469090bc965e469f596abdc87f6f"
+}
